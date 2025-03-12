@@ -4,7 +4,7 @@ const productController = require("../controllers/productController");
 const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 
 // ✅ Add product (Admin Only)
-router.post("/add", verifyToken, isAdmin, productController.addProduct);
+router.post("/", verifyToken, isAdmin, productController.addProduct);
 
 // ✅ Get all products (Anyone can access)
 router.get("/", productController.getAllProducts);

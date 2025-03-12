@@ -1,13 +1,20 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-exports.verifyToken = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Unauthorized" });
+const verifyToken = async (req, res, next) => {
+  const token = req.header("Authorization")?.split(" ")[1];
 
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized: No token provided" });
+  }
+
+  try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.userId);
+    req.user = await User.findById(decoded.id).select("-password");
+
+    if (!req.user) {
+      return res.status(404).json({ message: "User not found" }); // ✅ Fix this error
+    }
 
     next();
   } catch (error) {
@@ -15,16 +22,11 @@ exports.verifyToken = async (req, res, next) => {
   }
 };
 
-exports.isAdmin = (req, res, next) => {
-  if (req.user?.role !== "admin") {
-    return res.status(403).json({ message: "Access denied. Admin only." });
+const isAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access Denied: Admins only" });
   }
   next();
 };
 
-exports.isBusinessman = (req, res, next) => {
-  if (req.user?.role !== "businessman") {
-    return res.status(403).json({ message: "Access denied. Businessman only." });
-  }
-  next();
-};
+module.exports = { verifyToken, isAdmin };

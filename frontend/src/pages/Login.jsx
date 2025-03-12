@@ -11,15 +11,14 @@ const Login = ({ setUser }) => {
   const handleLogin = async () => {
     try {
       const { data } = await axios.post("http://localhost:5000/api/auth/login", { email, password });
-  
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("userName", data.name);  // Store user name
-      localStorage.setItem("userRole", data.role);
       
-      alert("Login Successful");
-      window.location.href = "/";  // Redirect to home page
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role); // ✅ Store role
+      
+      window.location.reload(); // Refresh to apply role-based UI
+      window.location.href = "/"; 
     } catch (error) {
-      alert("Invalid Credentials");
+      alert("Login failed: " + error.response?.data?.message || error.message);
     }
   };
   

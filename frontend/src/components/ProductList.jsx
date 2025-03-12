@@ -1,47 +1,40 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import ProductCard from "../pages/ProductCard";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProducts, deleteProduct, updateProduct } from "../redux/productSlice";
+import ProductCard from "./ProductCard";
 import { Grid } from "@mui/material";
 
 const ProductList = () => {
-    const [products, setProducts] = useState([]);
+    const dispatch = useDispatch();
+    const { products, loading, error } = useSelector((state) => state.products);
 
     useEffect(() => {
-        fetchProducts();
-    }, []);
+        dispatch(fetchProducts());
+    }, [dispatch]);
 
-    const fetchProducts = async () => {
-        try {
-            const { data } = await axios.get("http://localhost:5000/api/products");
-            console.log("Fetched Products:", data);
-            setProducts(data);
-        } catch (error) {
-            console.error("Error fetching products:", error);
-        }
-    };
-
-    const handleDelete = (id) => {
-        setProducts(products.filter((product) => product._id !== id));
-    };
-
-    const handleUpdate = (updatedProduct) => {
-        console.log("✅ handleUpdate called in ProductList");
-        setProducts(products.map((product) =>
-            product._id === updatedProduct._id ? updatedProduct : product
-        ));
-    };
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: {error}</p>;
 
     return (
         <Grid container spacing={3}>
-            {products.map((product) => (
-                <Grid item key={product._id} xs={12} sm={6} md={4}>
-                    <ProductCard
-                        {...product}
-                        onDelete={handleDelete}
-                        onUpdate={handleUpdate} // ✅ Make sure this is included
-                    />
-                </Grid>
-            ))}
+            {products.map((product) => {
+                console.log("🔥 Rendering Product:", product._id); // ✅ Debugging log
+                return (
+                    <Grid item key={product._id} xs={12} sm={6} md={4}>
+                        <ProductCard
+                            product={product}
+                            onDelete={() => {
+                                console.log("🛑 Delete function triggered for:", product._id); // ✅ Should appear in console
+                                dispatch(deleteProduct(product._id)); // ✅ Dispatch delete action
+                            }}
+                            onUpdate={(updatedData) => dispatch(updateProduct({ id: product._id, updatedData }))}
+                        />
+
+
+                    </Grid>
+                );
+            })}
+
         </Grid>
     );
 };

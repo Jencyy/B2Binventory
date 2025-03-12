@@ -1,18 +1,18 @@
 const Product = require("../models/Product");
 
-// Add a new product (Admin Only)
+// ✅ Add a new product
 exports.addProduct = async (req, res) => {
   try {
     const { name, image, price, stock } = req.body;
     const product = new Product({ name, image, price, stock });
     await product.save();
-    res.status(201).json({ message: "Product added successfully" });
+    res.status(201).json({ message: "Product added successfully", product });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Get all products
+// ✅ Get all products
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();
@@ -22,11 +22,8 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-
-
 // ✅ Update product (Admin Only)
 exports.updateProduct = async (req, res) => {
-
   try {
     console.log("Updating product with ID:", req.params.id); // ✅ Log ID
     console.log("Received Data:", req.body); // ✅ Log body data
@@ -35,7 +32,7 @@ exports.updateProduct = async (req, res) => {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       { name, image, price, stock },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updatedProduct) {
@@ -65,4 +62,3 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
