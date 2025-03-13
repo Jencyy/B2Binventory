@@ -7,11 +7,15 @@ import { Grid } from "@mui/material";
 const ProductList = () => {
     const dispatch = useDispatch();
     const { products, loading, error } = useSelector((state) => state.products);
-
+    
     useEffect(() => {
         dispatch(fetchProducts());
     }, [dispatch]);
-
+    const handleDelete = (id) => {
+        console.log("🛑 Dispatching delete for:", id);
+        dispatch(deleteProduct(id));
+    };
+    
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
 
@@ -23,14 +27,9 @@ const ProductList = () => {
                     <Grid item key={product._id} xs={12} sm={6} md={4}>
                         <ProductCard
                             product={product}
-                            onDelete={() => {
-                                console.log("🛑 Delete function triggered for:", product._id); // ✅ Should appear in console
-                                dispatch(deleteProduct(product._id)); // ✅ Dispatch delete action
-                            }}
+                            onDelete={handleDelete} 
                             onUpdate={(updatedData) => dispatch(updateProduct({ id: product._id, updatedData }))}
                         />
-
-
                     </Grid>
                 );
             })}

@@ -6,7 +6,7 @@ const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 // ✅ Add product (Admin Only)
 router.post("/", verifyToken, isAdmin, productController.addProduct);
 
-// ✅ Get all products (Anyone can access)
+// ✅ Get all products (Now includes category details)
 router.get("/", productController.getAllProducts);
 
 // ✅ Update product (Admin Only)

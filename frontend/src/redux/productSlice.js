@@ -1,12 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// API URL
 const API_URL = "http://localhost:5000/api/products";
 
 // Fetch Products (Async Action)
 export const fetchProducts = createAsyncThunk("products/fetchProducts", async () => {
   const { data } = await axios.get(API_URL);
+  return data;
+});
+
+// Add Product
+export const addProduct = createAsyncThunk("products/addProduct", async (product) => {
+  const token = localStorage.getItem("token");
+  const { data } = await axios.post(API_URL, product, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return data;
 });
 
@@ -20,15 +28,17 @@ export const deleteProduct = createAsyncThunk("products/deleteProduct", async (i
 });
 
 // Update Product
-export const updateProduct = createAsyncThunk("products/updateProduct", async ({ id, updatedData }) => {
+export const updateProduct = createAsyncThunk("products/updateProduct", async ({ dataa }) => {
   const token = localStorage.getItem("token");
-  const { data } = await axios.put(`${API_URL}/${id}`, updatedData, {
+  console.log(dataa,"dshflds")
+  const { data } = await axios.put(`${API_URL}/${dataa._id}`, updatedData, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return data.updatedProduct;
 });
 
 // Product Slice
+
 const productSlice = createSlice({
   name: "products",
   initialState: { products: [], loading: false, error: null },
@@ -46,15 +56,17 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
-      .addCase(deleteProduct.fulfilled, (state, action) => {
-        console.log("Deleted Product ID:", action.payload); // ✅ Debugging log
-        state.products = state.products.filter((p) => p._id !== action.payload);
+      .addCase(addProduct.fulfilled, (state, action) => {
+        state.products.push(action.payload);
       })
       .addCase(updateProduct.fulfilled, (state, action) => {
         const index = state.products.findIndex((p) => p._id === action.payload._id);
         if (index !== -1) {
           state.products[index] = action.payload;
         }
+      })
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.products = state.products.filter((p) => p._id !== action.payload);
       });
   },
 });
