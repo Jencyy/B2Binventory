@@ -28,14 +28,20 @@ export const deleteProduct = createAsyncThunk("products/deleteProduct", async (i
 });
 
 // Update Product
-export const updateProduct = createAsyncThunk("products/updateProduct", async ({ dataa }) => {
-  const token = localStorage.getItem("token");
-  console.log(dataa,"dshflds")
-  const { data } = await axios.put(`${API_URL}/${dataa._id}`, updatedData, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return data.updatedProduct;
-});
+// Update Product
+export const updateProduct = createAsyncThunk(
+  "products/updateProduct",
+  async (updatedProduct) => {  // ✅ Accept the updated product directly
+    const token = localStorage.getItem("token");
+    const { data } = await axios.put(
+      `${API_URL}/${updatedProduct._id}`, // ✅ Send correct ID
+      updatedProduct, // ✅ Send updated product data
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return data; // ✅ Return the updated product
+  }
+);
+
 
 // Product Slice
 
@@ -59,15 +65,24 @@ const productSlice = createSlice({
       .addCase(addProduct.fulfilled, (state, action) => {
         state.products.push(action.payload);
       })
-      .addCase(updateProduct.fulfilled, (state, action) => {
-        const index = state.products.findIndex((p) => p._id === action.payload._id);
-        if (index !== -1) {
-          state.products[index] = action.payload;
-        }
-      })
+      // .addCase(updateProduct.fulfilled, (state, action) => {
+      //   const updated_product = action.payload
+      //   const index = state.products.findIndex((p) => p._id === updated_product._id);
+      //   if (index !== -1) {
+      //     state.products[index] = updated_product;
+      //   }
+      // })
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.products = state.products.filter((p) => p._id !== action.payload);
-      });
+      })
+      .addCase(updateProduct.fulfilled, (state, action) => {
+        const updatedProduct = action.payload;
+        state.products = state.products.map((p) =>
+          p._id === updatedProduct._id ? updatedProduct : p
+        ); // ✅ Ensures UI updates immediately
+      })
+      
+      
   },
 });
 

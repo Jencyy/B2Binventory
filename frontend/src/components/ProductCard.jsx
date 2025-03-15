@@ -1,19 +1,21 @@
 import { Card, CardMedia, CardContent, Typography, Button } from "@mui/material";
 import EditProduct from "./EditProduct";
+import { addToCart } from "../redux/cartSlice";
 
 const ProductCard = ({ product, onDelete, onUpdate }) => {
   const isAdmin = localStorage.getItem("role") === "admin"; // ✅ Check admin role
-
-  if (!product) {
-    console.error("❌ ProductCard received undefined product");
-    return null;
+  if (!product || !product.name) {
+    console.error("❌ ProductCard received an undefined product or missing name:", product);
+    return null; // Prevent rendering if product is invalid
   }
+
 
   return (
     <Card sx={{ maxWidth: 345 }}>
       {/* Product Image */}
-      <CardMedia component="img" height="140" image={product.image} alt={product.name} />
-      
+      <CardMedia component="img" height="140" image={product.image || "/placeholder.jpg"} alt={product.name} />
+
+
       <CardContent>
         <Typography variant="h5">{product.name}</Typography>
         <Typography variant="body2">Category: {product.category.name || "N/A"}</Typography>
@@ -30,6 +32,13 @@ const ProductCard = ({ product, onDelete, onUpdate }) => {
             Your browser does not support the video tag.
           </video>
         )}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => dispatch(addToCart(product))}
+        >
+          🛒 Add to Cart
+        </Button>
 
         {isAdmin && ( // ✅ Only show for admin
           <>

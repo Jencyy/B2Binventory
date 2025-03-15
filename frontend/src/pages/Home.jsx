@@ -34,14 +34,13 @@ const Home = () => {
         {error && <p>Error: {error}</p>}
 
         <Grid container spacing={2}>
-          {products.map((product) => (
-            <Grid item key={product._id} xs={12} sm={6} md={4}>
+          {products.map((product, index) => (
+            <Grid item key={product._id || index} xs={12} sm={6} md={4}>
               <ProductCard product={product} onDelete={() => dispatch(deleteProduct(product._id))} />
-             
             </Grid>
           ))}
-
         </Grid>
+
       </Container>
     </>
   );

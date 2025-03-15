@@ -15,13 +15,14 @@ import {
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCategories } from "../redux/categorySlice";
-import { updateProduct } from "../redux/productSlice";  
+import {fetchProducts, updateProduct } from "../redux/productSlice";  
 
 const EditProduct = ({ product, onUpdate }) => {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const { categories = [], loading } = useSelector((state) => state.categories || {});
 
+  console.log("🔥  Product:", product);
   // ✅ Check if category is an object or just an ID
   const [updatedProduct, setUpdatedProduct] = useState({
     ...product,
@@ -39,20 +40,15 @@ const EditProduct = ({ product, onUpdate }) => {
     }));
   };
 
-  useEffect(()=>{
-    
-  },[updateProduct])
+
 
  
   const handleSubmit = async () => {
     try {
       if (!updatedProduct?._id) {
         alert("❌ Error: Product ID is missing.");
-        console.error("Product ID is undefined:", updatedProduct);
         return;
       }
-  
-      console.log("🔍 Updating product with ID:", updatedProduct._id);
   
       const token = localStorage.getItem("token");
       const response = await axios.put(
@@ -61,22 +57,20 @@ const EditProduct = ({ product, onUpdate }) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
-      console.log("✅ Update successful:", response.data);
+      dispatch(updateProduct(response.data)); // ✅ Update Redux state
+      dispatch(fetchProducts()); // ✅ Fetch updated products to refresh UI
   
-      // ✅ Correctly update Redux store with updated product data
-      dispatch(updateProduct(response.data));
-  
-      // ✅ Trigger parent component update
       if (typeof onUpdate === "function") {
         onUpdate(response.data);
       }
-  
       setOpen(false);
     } catch (error) {
       console.error("❌ Update Error:", error);
       alert("Error updating product: " + (error.response?.data?.message || error.message));
     }
   };
+  
+  
   
   
   return (

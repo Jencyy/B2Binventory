@@ -1,12 +1,16 @@
 import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState(localStorage.getItem("userRole"));
   const [userName, setUserName] = useState(localStorage.getItem("userName"));
 
+  useEffect(() => {
+  
+  const cartCount = useSelector((state) => state.cart.cartItems.length);
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
@@ -24,7 +28,13 @@ const Navbar = () => {
           </>
         ) : (
           <>
-            <Button color="inherit" onClick={() => navigate("/cart")}>Cart</Button>
+            <Link to="/cart">
+              <IconButton color="inherit">
+                <Badge badgeContent={cartCount} color="secondary">
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
+            </Link>
             <Button color="inherit" onClick={() => navigate("/my-orders")}>My Orders</Button>
           </>
         )}
