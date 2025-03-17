@@ -1,10 +1,18 @@
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { removeFromCart, updateQuantity, clearCart } from "../redux/cartSlice";
+import { fetchCart, removeFromCartAsync, clearCart } from "../redux/cartSlice";
 import { Button, TextField } from "@mui/material";
 
 const CartPage = () => {
-  const { cartItems } = useSelector((state) => state.cart);
+  const { cartItems = [], loading, error } = useSelector((state) => state.cart || {});
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
+
+  if (loading) return <p>Loading cart...</p>;
+  if (error) return <p>Error loading cart: {error}</p>;
 
   return (
     <div>
@@ -14,15 +22,10 @@ const CartPage = () => {
       ) : (
         cartItems.map((item) => (
           <div key={item._id} className="cart-item">
-            <img src={item.image} alt={item.name} width="50px" />
-            <h4>{item.name}</h4>
-            <TextField
-              type="number"
-              value={item.quantity}
-              onChange={(e) => dispatch(updateQuantity({ id: item._id, quantity: Number(e.target.value) }))}
-              inputProps={{ min: 1 }}
-            />
-            <Button color="error" onClick={() => dispatch(removeFromCart(item._id))}>
+            <img src={item.productId.image} alt={item.productId.name} width="50px" />
+            <h4>{item.productId.name}</h4>
+            <TextField type="number" value={item.quantity} inputProps={{ min: 1 }} />
+            <Button color="error" onClick={() => dispatch(removeFromCartAsync(item.productId._id))}>
               ❌ Remove
             </Button>
           </div>

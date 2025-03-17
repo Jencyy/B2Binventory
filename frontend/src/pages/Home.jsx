@@ -1,5 +1,5 @@
 import { Container, Grid, Typography, Button } from "@mui/material";
-import Navbar from "../components/Navbar";
+
 import ProductCard from "../components/ProductCard";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,7 +18,7 @@ const Home = () => {
 
   return (
     <>
-      <Navbar />
+    
       <Container>
         <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>
           {isAdmin ? "Manage Inventory" : "Available Products"}

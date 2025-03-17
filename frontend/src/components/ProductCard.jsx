@@ -1,13 +1,20 @@
 import { Card, CardMedia, CardContent, Typography, Button } from "@mui/material";
 import EditProduct from "./EditProduct";
-import { addToCart } from "../redux/cartSlice";
+// import {  addToCartAsync } from "../redux/cartSlice";
+import { useDispatch } from "react-redux";
+import { addToCartAsync } from "../redux/cartSlice";
 
 const ProductCard = ({ product, onDelete, onUpdate }) => {
+  const dispatch = useDispatch();
   const isAdmin = localStorage.getItem("role") === "admin"; // ✅ Check admin role
   if (!product || !product.name) {
     console.error("❌ ProductCard received an undefined product or missing name:", product);
     return null; // Prevent rendering if product is invalid
   }
+
+  const handleAddToCart = () => {
+    dispatch(addToCartAsync({ productId: product._id, quantity: 1 }));
+  };
 
 
   return (
@@ -32,13 +39,8 @@ const ProductCard = ({ product, onDelete, onUpdate }) => {
             Your browser does not support the video tag.
           </video>
         )}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => dispatch(addToCart(product))}
-        >
-          🛒 Add to Cart
-        </Button>
+        <Button onClick={handleAddToCart}> 🛒 Add to Cart</Button>
+
 
         {isAdmin && ( // ✅ Only show for admin
           <>
