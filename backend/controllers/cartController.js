@@ -36,23 +36,26 @@ const addToCart = async (req, res) => {
 };
 
 // ✅ Update Cart Item Quantity
+// ✅ Update Cart Item Quantity (Increase or Decrease)
 const updateCartItem = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
+    const { productId, change } = req.body; // Change instead of direct quantity
     const cart = await Cart.findOne({ userId: req.user.id });
     if (!cart) return res.status(404).json({ message: "Cart not found" });
 
     const item = cart.items.find((item) => item.productId.toString() === productId);
     if (!item) return res.status(404).json({ message: "Product not in cart" });
 
-    item.quantity = quantity;
-    await cart.save();
+    item.quantity += change; // ✅ Increment or Decrement
+    if (item.quantity < 1) item.quantity = 1; // Prevent going below 1
 
-    res.json(cart.items);
+    await cart.save();
+    res.json(cart.items); // ✅ Send back updated cart
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 // ✅ Remove Item from Cart
 const removeCartItem = async (req, res) => {

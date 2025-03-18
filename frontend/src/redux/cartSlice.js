@@ -61,6 +61,41 @@ export const removeFromCartAsync = createAsyncThunk(
     }
   }
 );
+// ✅ Increase Quantity
+export const increaseQuantityAsync = createAsyncThunk(
+  "cart/increaseQuantity",
+  async (productId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/update`, 
+        { productId, change: 1 }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data; // ✅ Return updated cart items
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to update quantity");
+    }
+  }
+);
+
+// ✅ Decrease Quantity
+export const decreaseQuantityAsync = createAsyncThunk(
+  "cart/decreaseQuantity",
+  async (productId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${API_URL}/update`, 
+        { productId, change: -1 }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data; // ✅ Return updated cart items
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to update quantity");
+    }
+  }
+);
 
 const cartSlice = createSlice({
   name: "cart",
@@ -95,13 +130,17 @@ const cartSlice = createSlice({
       .addCase(updateCartQuantityAsync.fulfilled, (state, action) => {
         state.cartItems = action.payload;
       })
-
+      .addCase(increaseQuantityAsync.fulfilled, (state, action) => {
+        state.cartItems = action.payload; // ✅ Update cart in state
+      })
+  
+      .addCase(decreaseQuantityAsync.fulfilled, (state, action) => {
+        state.cartItems = action.payload; // ✅ Update cart in state
+      })
       .addCase(removeFromCartAsync.fulfilled, (state, action) => {
         state.cartItems = state.cartItems.filter((item) => item.productId._id !== action.payload);
-      })
-      .addCase(addToCartAsync.fulfilled, (state) => {
-        // ✅ The fetchCart() action will update state, so nothing is needed here
       });
+
   },
 });
 

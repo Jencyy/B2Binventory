@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchCart, removeFromCartAsync, clearCart } from "../redux/cartSlice";
+import { fetchCart, removeFromCartAsync, increaseQuantityAsync, decreaseQuantityAsync, clearCart } from "../redux/cartSlice";
 import { Button, TextField } from "@mui/material";
 
 const CartPage = () => {
@@ -21,20 +21,20 @@ const CartPage = () => {
         <p>Your cart is empty.</p>
       ) : (
         cartItems.map((item) => (
-          <div key={item._id} className="cart-item">
+          <div key={item.productId._id} className="cart-item">
             <img src={item.productId.image} alt={item.productId.name} width="50px" />
             <h4>{item.productId.name}</h4>
-            <TextField type="number" value={item.quantity} inputProps={{ min: 1 }} />
-            <Button color="error" onClick={() => dispatch(removeFromCartAsync(item.productId._id))}>
-              ❌ Remove
-            </Button>
+
+            <Button onClick={() => dispatch(decreaseQuantityAsync(item.productId._id))}>➖</Button>
+            <TextField type="number" value={item.quantity} disabled />
+            <Button onClick={() => dispatch(increaseQuantityAsync(item.productId._id))}>➕</Button>
+
+            <Button color="error" onClick={() => dispatch(removeFromCartAsync(item.productId._id))}>❌ Remove</Button>
           </div>
         ))
       )}
       {cartItems.length > 0 && (
-        <Button variant="contained" color="secondary" onClick={() => dispatch(clearCart())}>
-          🗑 Clear Cart
-        </Button>
+        <Button variant="contained" color="secondary" onClick={() => dispatch(clearCart())}>🗑 Clear Cart</Button>
       )}
     </div>
   );
