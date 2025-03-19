@@ -35,11 +35,8 @@ export const addToCartAsync = createAsyncThunk(
 export const updateCartQuantityAsync = createAsyncThunk("cart/updateCartQuantityAsync", async ({ productId, quantity }, { rejectWithValue }) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.put(
-      `${API_URL}/update`,
-      { productId, quantity },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const response = await axios.put("http://localhost:5000/api/cart/update", { productId, change: quantity }) 
+
     return response.data.items;
   } catch (error) {
     return rejectWithValue(error.response?.data || "Something went wrong");
@@ -68,8 +65,8 @@ export const increaseQuantityAsync = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `${API_URL}/update`, 
-        { productId, change: 1 }, 
+        `http://localhost:5000/api/cart/update`,
+        { productId, change: 1 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       return response.data; // ✅ Return updated cart items
@@ -86,8 +83,8 @@ export const decreaseQuantityAsync = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `${API_URL}/update`, 
-        { productId, change: -1 }, 
+        `http://localhost:5000/api/cart/update`,
+        { productId, change: -1 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       return response.data; // ✅ Return updated cart items
@@ -131,11 +128,11 @@ const cartSlice = createSlice({
         state.cartItems = action.payload;
       })
       .addCase(increaseQuantityAsync.fulfilled, (state, action) => {
-        state.cartItems = action.payload; // ✅ Update cart in state
+        state.cartItems = action.payload; 
       })
-  
+
       .addCase(decreaseQuantityAsync.fulfilled, (state, action) => {
-        state.cartItems = action.payload; // ✅ Update cart in state
+        state.cartItems = action.payload; 
       })
       .addCase(removeFromCartAsync.fulfilled, (state, action) => {
         state.cartItems = state.cartItems.filter((item) => item.productId._id !== action.payload);
