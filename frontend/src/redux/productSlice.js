@@ -10,12 +10,23 @@ export const fetchProducts = createAsyncThunk("products/fetchProducts", async ()
 });
 
 // Add Product
-export const addProduct = createAsyncThunk("products/addProduct", async (product) => {
-  const token = localStorage.getItem("token");
-  const { data } = await axios.post(API_URL, product, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return data;
+export const addProduct = createAsyncThunk("products/addProduct", async (formData) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const { data } = await axios.post("http://localhost:5000/api/products/", formData, {
+      headers: { 
+        "Content-Type": "multipart/form-data", // ✅ Required for files
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Product Added Response:", data);
+    return data;
+  } catch (error) {
+    console.error("Error adding product:", error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || "Error adding product");
+  }
 });
 
 // Delete Product

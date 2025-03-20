@@ -20,15 +20,25 @@ export const addToCartAsync = createAsyncThunk(
   async ({ productId, quantity }, { dispatch, rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`${API_URL}/add`, { productId, quantity }, { headers: { Authorization: `Bearer ${token}` } });
+      console.log("🔹 Sending Data:", { productId, quantity }); // Log request data
 
-      // ✅ Immediately fetch the updated cart
+      const response = await axios.post(
+        "http://localhost:5000/api/cart/add",
+        { productId, quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("✅ Response Data:", response.data); // Log response data
+
       dispatch(fetchCart());
+      return response.data;
     } catch (error) {
+      console.error("❌ Error:", error.response?.data || "Server Error");
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
 );
+
 
 
 // ✅ Update Cart Quantity in DB

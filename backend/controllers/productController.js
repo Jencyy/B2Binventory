@@ -3,13 +3,26 @@ const Product = require("../models/Product");
 // ✅ Add a new product (Admin Only)
 exports.addProduct = async (req, res) => {
   try {
-    const { name, image, price, stock, category, description, video } = req.body;
+    const { name, price, stock, category } = req.body;
 
-    const product = new Product({ name, image, price, stock, category, description, video });
-    await product.save();
-    
-    res.status(201).json({ message: "Product added successfully", product });
+    if (!req.file) {
+      return res.status(400).json({ error: "Image is required." });
+    }
+
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    const newProduct = new Product({
+      name,
+      price,
+      stock,
+      category,
+      image: imageUrl, // ✅ Save uploaded image path
+    });
+
+    const savedProduct = await newProduct.save();
+    res.status(201).json(savedProduct);
   } catch (error) {
+    console.error("Error adding product:", error);
     res.status(500).json({ error: error.message });
   }
 };

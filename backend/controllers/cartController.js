@@ -15,14 +15,16 @@ const getCart = async (req, res) => {
 const addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
-    let cart = await Cart.findOne({ userId: req.user.id });
+    const userId = req.user.id; // ✅ Ensure user ID exists
+
+    let cart = await Cart.findOne({ userId });
     const product = await Product.findById(productId);
 
     if (!product) return res.status(404).json({ message: "Product not found" });
     if (quantity > product.stock) return res.status(400).json({ message: "Not enough stock available" });
 
     if (!cart) {
-      cart = new Cart({ userId: req.user.id, items: [] });
+      cart = new Cart({ userId, items: [] }); // ✅ Create cart if none exists
     }
 
     const itemIndex = cart.items.findIndex((item) => item.productId.toString() === productId);
@@ -32,17 +34,16 @@ const addToCart = async (req, res) => {
       cart.items.push({ productId, quantity });
     }
 
-    // Decrease stock after adding to cart
     product.stock -= quantity;
     await product.save();
     await cart.save();
 
     res.json(cart.items);
   } catch (error) {
+    console.error("Add to cart error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 // ✅ Update Cart Item Quantity
 // ✅ Update Cart Item Quantity (Increase or Decrease)
