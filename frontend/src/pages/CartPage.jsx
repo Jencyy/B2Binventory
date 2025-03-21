@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchCart, removeFromCartAsync, clearCart } from "../redux/cartSlice";
+import { fetchCart, removeFromCartAsync, clearCart } from "../../redux/cartSlice";
 import { Button } from "@mui/material";
 
 const CartPage = () => {

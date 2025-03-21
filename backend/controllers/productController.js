@@ -1,31 +1,54 @@
 const Product = require("../models/Product");
+const multer = require("multer");
+
+// Define storage for uploaded files
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Ensure "uploads" folder exists
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+// Initialize upload middleware
+const upload = multer({ storage });
 
 // ✅ Add a new product (Admin Only)
 exports.addProduct = async (req, res) => {
   try {
-    const { name, price, stock, category } = req.body;
+    const { name, price, stock, category, description } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ error: "Image is required." });
+    // Handle image upload
+    let images = [];
+    if (req.files["images"]) {
+      images = req.files["images"].map((file) => `/uploads/${file.filename}`);
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // Handle video upload
+    let video = "";
+    if (req.files["video"]) {
+      video = `/uploads/${req.files["video"][0].filename}`;
+    }
 
     const newProduct = new Product({
       name,
       price,
       stock,
       category,
-      image: imageUrl, // ✅ Save uploaded image path
+      description,
+      images,
+      video,
     });
 
-    const savedProduct = await newProduct.save();
-    res.status(201).json(savedProduct);
-  } catch (error) {
-    console.error("Error adding product:", error);
-    res.status(500).json({ error: error.message });
+    await newProduct.save();
+    res.status(201).json({ message: "Product added", product: newProduct });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
+
+
 
 // ✅ Get all products (Now includes category details)
 exports.getAllProducts = async (req, res) => {

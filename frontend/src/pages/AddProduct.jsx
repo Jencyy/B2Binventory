@@ -1,11 +1,12 @@
-import { 
-  Container, TextField, Button, Typography, Select, MenuItem, 
-  InputLabel, FormControl, Card, CardMedia, Grid, IconButton, Box 
+import {
+  Container, TextField, Button, Typography, Select, MenuItem,
+  InputLabel, FormControl, Card, CardMedia, Grid, IconButton, Box
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories, addCategory } from "../redux/categorySlice"; // Ensure addCategory exists in categorySlice
-import { addProduct } from "../redux/productSlice";
+import { fetchCategories, addCategory } from "../../redux/categorySlice"; // Ensure addCategory exists in categorySlice
+import { addProduct } from "../../redux/productSlice";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -35,11 +36,8 @@ const AddProduct = () => {
   };
 
   // ✅ Handle Image Upload
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const newImages = files.map((file) => URL.createObjectURL(file));
-    setProduct({ ...product, images: [...product.images, ...newImages] });
-  };
+
+
 
   // ✅ Handle Image Delete
   const handleImageDelete = (index) => {
@@ -48,18 +46,12 @@ const AddProduct = () => {
   };
 
   // ✅ Handle Video Upload
-  const handleVideoUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const videoUrl = URL.createObjectURL(file);
-      setProduct({ ...product, video: videoUrl });
-    }
-  };
+
 
   // ✅ Handle Category Addition
   const handleAddCategory = () => {
     if (product.newCategory.trim() === "") return;
-    
+
     dispatch(addCategory({ name: product.newCategory })).then(() => {
       dispatch(fetchCategories()); // Refresh categories after adding
       setProduct({ ...product, category: product.newCategory, newCategory: "" });
@@ -67,49 +59,69 @@ const AddProduct = () => {
   };
 
   // ✅ Handle Submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    const formData = new FormData();
-    formData.append("name", product.name);
-    formData.append("price", product.price);
-    formData.append("stock", product.stock);
-    formData.append("description", product.description);
-    formData.append("category", product.category);
-    
-  
-    product.images.forEach((image) => {
-      formData.append("images", image); // ✅ Append actual files
-    });
-  
-    if (product.video) {
-      formData.append("video", product.video); // ✅ Append video file
-    }
-  
-    console.log("Submitting Product:", formData);
-  
-    dispatch(addProduct(formData))
-      .unwrap()
-      .then(() => {
-        alert("Product added successfully!");
-        navigate("/"); // Redirect after success
-      })
-      .catch((error) => {
-        alert("Error adding product: " + error.message);
-      });
-  };
-  
+  // ✅ Handle Image Upload
+const handleImageUpload = (e) => {
+  const files = Array.from(e.target.files);
+  setProduct((prev) => ({
+    ...prev,
+    images: [...prev.images, ...files], // ✅ Ensure files are stored correctly
+  }));
+};
 
+// ✅ Handle Video Upload
+const handleVideoUpload = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    setProduct({ ...product, video: file }); // ✅ Store actual file, not URL
+  }
+};
+
+// ✅ Handle Submit
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData();
+  formData.append("name", product.name);
+  formData.append("price", product.price);
+  formData.append("stock", product.stock);
+  formData.append("description", product.description);
+  formData.append("category", product.category);
+
+  // ✅ Append multiple images
+  product.images.forEach((image) => {
+    formData.append("images", image);
+  });
+
+  // ✅ Append video file
+  if (product.video) {
+    formData.append("video", product.video);
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post("http://localhost:5000/api/products", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    navigate("/");
+    console.log("Product Added:", response.data);
+  } catch (error) {
+    console.error("Error adding product:", error.response?.data || error.message);
+  }
+};
+
+  
   return (
     <Container maxWidth="md">
       <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>Add Product</Typography>
-
       <TextField fullWidth label="Product Name" name="name" margin="normal" onChange={handleChange} required />
       <TextField fullWidth label="Price" name="price" margin="normal" type="number" onChange={handleChange} required />
       <TextField fullWidth label="Stock" name="stock" margin="normal" type="number" onChange={handleChange} required />
       <TextField fullWidth label="Description" name="description" margin="normal" onChange={handleChange} required />
 
-      {/* ✅ Category Selection & Adding New Category */}
+      {/* Category Selection */}
       <FormControl fullWidth margin="normal">
         <InputLabel>Category</InputLabel>
         <Select name="category" value={product.category} onChange={handleChange} required>
@@ -133,9 +145,15 @@ const AddProduct = () => {
         {product.images.map((img, index) => (
           <Grid item xs={4} key={index}>
             <Card sx={{ position: "relative" }}>
-              <CardMedia component="img" height="140" image={img} alt={`Product Image ${index + 1}`} />
-              <IconButton 
-                sx={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.5)" }} 
+              <CardMedia
+                component="img"
+                height="140"
+                image={URL.createObjectURL(img)}
+                alt={`Product Image ${index + 1}`}
+              />
+
+              <IconButton
+                sx={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.5)" }}
                 onClick={() => handleImageDelete(index)}
               >
                 <DeleteIcon sx={{ color: "white" }} />

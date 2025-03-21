@@ -3,7 +3,7 @@ import { Container, Grid, Typography, Button } from "@mui/material";
 import ProductCard from "../components/ProductCard";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts, deleteProduct, updateProduct } from "../redux/productSlice";
+import { fetchProducts, deleteProduct, updateProduct } from "../../redux/productSlice";
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {

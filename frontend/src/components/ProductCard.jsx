@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardMedia, CardContent, Typography, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material";
 import EditProduct from "./EditProduct";
 import { useDispatch } from "react-redux";
-import { addToCartAsync } from "../redux/cartSlice";
+import { addToCartAsync } from "../../redux/cartSlice";
 
 const ProductCard = ({ product, onDelete, onUpdate }) => {
   const dispatch = useDispatch();

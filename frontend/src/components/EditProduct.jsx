@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchCategories } from "../redux/categorySlice";
-import {fetchProducts, updateProduct } from "../redux/productSlice";  
+import { fetchCategories } from "../../redux/categorySlice";
+import {fetchProducts, updateProduct } from "../../redux/productSlice";  
 
 const EditProduct = ({ product, onUpdate }) => {
   const [open, setOpen] = useState(false);

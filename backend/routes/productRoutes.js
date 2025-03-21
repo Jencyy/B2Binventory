@@ -5,13 +5,8 @@ const productController = require("../controllers/productController");
 const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 
 // ✅ Add product (Admin Only) - Now Handles Image & Video Uploads
-router.post(
-  "/",
-  verifyToken,
-  isAdmin,
-  upload.single("image"),
-  productController.addProduct
-);
+router.post("/", upload.fields([{ name: "images", maxCount: 5 }, { name: "video", maxCount: 1 }]),productController.addProduct);
+
 
 // ✅ Get all products
 router.get("/", productController.getAllProducts);
