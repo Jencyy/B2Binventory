@@ -15,20 +15,25 @@ import {
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCategories } from "../../redux/categorySlice";
-import {fetchProducts, updateProduct } from "../../redux/productSlice";  
+import { fetchProducts, updateProduct } from "../../redux/productSlice";  
 
 const EditProduct = ({ product, onUpdate }) => {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const { categories = [], loading } = useSelector((state) => state.categories || {});
 
-  console.log("🔥  Product:", product);
-  // ✅ Check if category is an object or just an ID
+  console.log("🔥 Product:", product);
+
   const [updatedProduct, setUpdatedProduct] = useState({
     ...product,
-    category: product?.category?._id || product?.category || "", // ✅ Fix: Ensure we store the correct ID
+    category: product?.category?._id || product?.category || "",
   });
-  
+
+  const [imagePreview, setImagePreview] = useState(product.image || "");
+  const [videoPreview, setVideoPreview] = useState(product.video || "");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
@@ -40,45 +45,69 @@ const EditProduct = ({ product, onUpdate }) => {
     }));
   };
 
-
-
- 
-  const handleSubmit = async () => {
-    try {
-      if (!updatedProduct?._id) {
-        alert("❌ Error: Product ID is missing.");
-        return;
-      }
-  
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `http://localhost:5000/api/products/${updatedProduct._id}`,
-        updatedProduct,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-  
-      dispatch(updateProduct(response.data)); // ✅ Update Redux state
-      dispatch(fetchProducts()); // ✅ Fetch updated products to refresh UI
-  
-      if (typeof onUpdate === "function") {
-        onUpdate(response.data);
-      }
-      setOpen(false);
-    } catch (error) {
-      console.error("❌ Update Error:", error);
-      alert("Error updating product: " + (error.response?.data?.message || error.message));
+  // Handle Image Selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file)); // Show preview
     }
   };
-  
-  
-  
-  
+
+  // Handle Video Selection
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedVideo(file);
+      setVideoPreview(URL.createObjectURL(file)); // Show preview
+    }
+  };
+
+ const handleSubmit = async () => {
+  try {
+    if (!updatedProduct?._id) {
+      alert("❌ Error: Product ID is missing.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+
+    formData.append("name", updatedProduct.name);
+    formData.append("price", updatedProduct.price);
+    formData.append("stock", updatedProduct.stock);
+    formData.append("description", updatedProduct.description);
+    formData.append("category", updatedProduct.category);
+
+    if (selectedImage) formData.append("image", selectedImage);
+    if (selectedVideo) formData.append("video", selectedVideo);
+
+    const response = await axios.put(
+      `http://localhost:5000/api/products/${updatedProduct._id}`,
+      formData,
+      { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } }
+    );
+
+    dispatch(updateProduct(response.data)); // Update Redux state
+    dispatch(fetchProducts()); // Fetch updated products
+
+    if (typeof onUpdate === "function") {
+      onUpdate(response.data);
+    }
+    setOpen(false);
+  } catch (error) {
+    console.error("❌ Update Error:", error);
+    alert("Error updating product: " + (error.response?.data?.message || error.message));
+  }
+};
+
+
   return (
     <>
       <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
         ✏️ Edit Product
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth  >
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", color: "#044333" }}>
           ✨ Edit Product Details
         </DialogTitle>
@@ -96,16 +125,10 @@ const EditProduct = ({ product, onUpdate }) => {
               />
             </Grid>
 
-            {/* Image */}
+            {/* Image Upload */}
             <Grid item xs={12}>
-              <TextField 
-                name="image" 
-                label="Image URL" 
-                value={updatedProduct.image || ""} 
-                onChange={handleChange} 
-                fullWidth 
-                variant="outlined" 
-              />
+              <input type="file" accept="image/*" onChange={handleImageChange} />
+              {imagePreview && <img src={imagePreview} alt="Preview" width="100%" />}
             </Grid>
 
             {/* Price & Stock */}
@@ -146,16 +169,10 @@ const EditProduct = ({ product, onUpdate }) => {
               />
             </Grid>
 
-            {/* Video */}
+            {/* Video Upload */}
             <Grid item xs={12}>
-              <TextField 
-                name="video" 
-                label="Product Video URL" 
-                value={updatedProduct.video || ""} 
-                onChange={handleChange} 
-                fullWidth 
-                variant="outlined" 
-              />
+              <input type="file" accept="video/*" onChange={handleVideoChange} />
+              {videoPreview && <video src={videoPreview} width="100%" controls />}
             </Grid>
 
             {/* Category Selection */}
@@ -164,7 +181,7 @@ const EditProduct = ({ product, onUpdate }) => {
                 <InputLabel>Category</InputLabel>
                 <Select
                   name="category"
-                  value={updatedProduct.category} // ✅ Now correctly displaying the selected category
+                  value={updatedProduct.category}
                   onChange={handleChange}
                   label="Category"
                 >

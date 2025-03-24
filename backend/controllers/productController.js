@@ -63,21 +63,27 @@ exports.getAllProducts = async (req, res) => {
 // ✅ Update product (Admin Only)
 exports.updateProduct = async (req, res) => {
   try {
-    const { name, image, price, stock, category, description, video } = req.body;
-    
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      { name, image, price, stock, category, description, video },
-      { new: true, runValidators: true }
-    );
+    const { id } = req.params;
+    let updatedData = { ...req.body };
+
+    // Check if image or video files are uploaded
+    if (req.files?.image) {
+      updatedData.image = `/uploads/${req.files.image[0].filename}`;
+    }
+    if (req.files?.video) {
+      updatedData.video = `/uploads/${req.files.video[0].filename}`;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true });
 
     if (!updatedProduct) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ message: "Product updated successfully", updatedProduct });
+    res.json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Update Product Error:", error);
+    res.status(500).json({ message: "Error updating product", error });
   }
 };
 

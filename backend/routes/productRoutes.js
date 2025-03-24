@@ -12,7 +12,7 @@ router.post("/", upload.fields([{ name: "images", maxCount: 5 }, { name: "video"
 router.get("/", productController.getAllProducts);
 
 // ✅ Update product (Admin Only)
-router.put("/:id", verifyToken, isAdmin, upload.fields([{ name: "images", maxCount: 5 }, { name: "video", maxCount: 1 }]), productController.updateProduct);
+router.put("/:id", verifyToken, isAdmin,upload.fields([{ name: "image" }, { name: "video" }]), productController.updateProduct);
 
 // ✅ Delete product (Admin Only)
 router.delete("/:id", verifyToken, isAdmin, productController.deleteProduct);

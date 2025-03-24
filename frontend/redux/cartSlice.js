@@ -129,7 +129,6 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(addToCartAsync.fulfilled, (state, action) => {
         state.cartItems = action.payload;
       })
