@@ -1,11 +1,21 @@
 import {
-  Container, TextField, Button, Typography, Select, MenuItem,
-  InputLabel, FormControl, Card, CardMedia, Grid, IconButton, Box
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Card,
+  CardMedia,
+  Grid,
+  IconButton,
+  Box,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories, addCategory } from "../../redux/categorySlice"; // Ensure addCategory exists in categorySlice
-import { addProduct } from "../../redux/productSlice";
+import { fetchCategories, addCategory } from "../../redux/categorySlice";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -23,155 +33,167 @@ const AddProduct = () => {
     video: "",
     description: "",
     category: "",
-    newCategory: "", // New category input
+    newCategory: "",
   });
 
   useEffect(() => {
-    dispatch(fetchCategories()); // Fetch categories when component loads
+    dispatch(fetchCategories());
   }, [dispatch]);
 
-  // ✅ Handle Input Change
   const handleChange = (e) => {
     setProduct({ ...product, [e.target.name]: e.target.value });
   };
 
-  // ✅ Handle Image Upload
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setProduct((prev) => ({
+      ...prev,
+      images: [...prev.images, ...files],
+    }));
+  };
 
-
-
-  // ✅ Handle Image Delete
   const handleImageDelete = (index) => {
     const newImages = product.images.filter((_, i) => i !== index);
     setProduct({ ...product, images: newImages });
   };
 
-  // ✅ Handle Video Upload
+  const handleVideoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProduct({ ...product, video: file });
+    }
+  };
 
-
-  // ✅ Handle Category Addition
   const handleAddCategory = () => {
     if (product.newCategory.trim() === "") return;
 
     dispatch(addCategory({ name: product.newCategory })).then(() => {
-      dispatch(fetchCategories()); // Refresh categories after adding
+      dispatch(fetchCategories());
       setProduct({ ...product, category: product.newCategory, newCategory: "" });
     });
   };
 
-  // ✅ Handle Submit
-  // ✅ Handle Image Upload
-const handleImageUpload = (e) => {
-  const files = Array.from(e.target.files);
-  setProduct((prev) => ({
-    ...prev,
-    images: [...prev.images, ...files], // ✅ Ensure files are stored correctly
-  }));
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-// ✅ Handle Video Upload
-const handleVideoUpload = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    setProduct({ ...product, video: file }); // ✅ Store actual file, not URL
-  }
-};
+    const formData = new FormData();
+    formData.append("name", product.name);
+    formData.append("price", product.price);
+    formData.append("stock", product.stock);
+    formData.append("description", product.description);
+    formData.append("category", product.category);
 
-// ✅ Handle Submit
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  const formData = new FormData();
-  formData.append("name", product.name);
-  formData.append("price", product.price);
-  formData.append("stock", product.stock);
-  formData.append("description", product.description);
-  formData.append("category", product.category);
-
-  // ✅ Append multiple images
-  product.images.forEach((image) => {
-    formData.append("images", image);
-  });
-
-  // ✅ Append video file
-  if (product.video) {
-    formData.append("video", product.video);
-  }
-
-  try {
-    const token = localStorage.getItem("token");
-    const response = await axios.post("http://localhost:5000/api/products", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
-      },
+    product.images.forEach((image) => {
+      formData.append("images", image);
     });
-    navigate("/");
-    console.log("Product Added:", response.data);
-  } catch (error) {
-    console.error("Error adding product:", error.response?.data || error.message);
-  }
-};
 
-  
+    if (product.video) {
+      formData.append("video", product.video);
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post("http://localhost:5000/api/products", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Error adding product:", error.response?.data || error.message);
+    }
+  };
+
   return (
-    <Container maxWidth="md">
-      <Typography variant="h4" sx={{ mt: 4, mb: 2 }}>Add Product</Typography>
-      <TextField fullWidth label="Product Name" name="name" margin="normal" onChange={handleChange} required />
-      <TextField fullWidth label="Price" name="price" margin="normal" type="number" onChange={handleChange} required />
-      <TextField fullWidth label="Stock" name="stock" margin="normal" type="number" onChange={handleChange} required />
-      <TextField fullWidth label="Description" name="description" margin="normal" onChange={handleChange} required />
+    <Container maxWidth="md" sx={{ mt: 4, p: 3, bgcolor: "var(--white)", borderRadius: "12px", boxShadow: "0px 5px 15px rgba(0,0,0,0.1)" }}>
+      <Typography variant="h4" sx={{ textAlign: "center", fontWeight: "bold", color: "var(--primary-color)", mb: 3 }}>
+        Add Product
+      </Typography>
 
-      {/* Category Selection */}
-      <FormControl fullWidth margin="normal">
-        <InputLabel>Category</InputLabel>
-        <Select name="category" value={product.category} onChange={handleChange} required>
-          {categories.map((cat) => (
-            <MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>
-          ))}
-          <MenuItem value="custom">➕ Add New Category</MenuItem>
-        </Select>
-      </FormControl>
+      <Grid container spacing={2}>
+        {/* Product Name */}
+        <Grid item xs={12}>
+          <TextField fullWidth label="Product Name" name="name" onChange={handleChange} required variant="outlined" />
+        </Grid>
 
-      {product.category === "custom" && (
-        <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-          <TextField fullWidth label="New Category" value={product.newCategory} onChange={(e) => setProduct({ ...product, newCategory: e.target.value })} />
-          <Button variant="contained" onClick={handleAddCategory}>Add</Button>
-        </Box>
-      )}
+        {/* Price & Stock */}
+        <Grid item xs={6}>
+          <TextField fullWidth label="Price" name="price" type="number" onChange={handleChange} required variant="outlined" />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField fullWidth label="Stock" name="stock" type="number" onChange={handleChange} required variant="outlined" />
+        </Grid>
 
-      {/* ✅ Image Upload */}
-      <input type="file" accept="image/*" multiple onChange={handleImageUpload} />
-      <Grid container spacing={2} sx={{ mt: 2 }}>
-        {product.images.map((img, index) => (
-          <Grid item xs={4} key={index}>
-            <Card sx={{ position: "relative" }}>
-              <CardMedia
-                component="img"
-                height="140"
-                image={URL.createObjectURL(img)}
-                alt={`Product Image ${index + 1}`}
-              />
+        {/* Description */}
+        <Grid item xs={12}>
+          <TextField fullWidth label="Description" name="description" onChange={handleChange} required multiline rows={3} variant="outlined" />
+        </Grid>
 
-              <IconButton
-                sx={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.5)" }}
-                onClick={() => handleImageDelete(index)}
-              >
-                <DeleteIcon sx={{ color: "white" }} />
-              </IconButton>
-            </Card>
+        {/* Category Selection */}
+        <Grid item xs={12}>
+          <FormControl fullWidth variant="outlined">
+            <InputLabel>Category</InputLabel>
+            <Select name="category" value={product.category} onChange={handleChange} required>
+              {categories.map((cat) => (
+                <MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>
+              ))}
+              <MenuItem value="custom">➕ Add New Category</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* New Category Input */}
+        {product.category === "custom" && (
+          <Grid item xs={12} sx={{ display: "flex", gap: 2 }}>
+            <TextField fullWidth label="New Category" value={product.newCategory} onChange={(e) => setProduct({ ...product, newCategory: e.target.value })} />
+            <Button variant="contained" onClick={handleAddCategory} sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", "&:hover": { bgcolor: "var(--sea-nymph)" } }}>
+              Add
+            </Button>
           </Grid>
-        ))}
+        )}
+
+        {/* Image Upload */}
+        <Grid item xs={12}>
+          <Typography variant="body1" sx={{ fontWeight: "bold" }}>Upload Images</Typography>
+          <input type="file" accept="image/*" multiple onChange={handleImageUpload} />
+        </Grid>
+
+        {/* Image Preview */}
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          {product.images.map((img, index) => (
+            <Grid item xs={4} key={index}>
+              <Card sx={{ position: "relative" }}>
+                <CardMedia component="img" height="140" image={URL.createObjectURL(img)} alt={`Product Image ${index + 1}`} />
+                <IconButton
+                  sx={{ position: "absolute", top: 5, right: 5, background: "rgba(0,0,0,0.5)" }}
+                  onClick={() => handleImageDelete(index)}
+                >
+                  <DeleteIcon sx={{ color: "white" }} />
+                </IconButton>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* Video Upload */}
+        <Grid item xs={12}>
+          <Typography variant="body1" sx={{ fontWeight: "bold" }}>Upload Video</Typography>
+          <input type="file" accept="video/*" onChange={handleVideoUpload} />
+          {product.video && (
+            <Card sx={{ mt: 2 }}>
+              <CardMedia component="video" controls height="200" src={URL.createObjectURL(product.video)} />
+            </Card>
+          )}
+        </Grid>
+
+        {/* Submit Button */}
+        <Grid item xs={12}>
+          <Button fullWidth variant="contained" sx={{ mt: 2, bgcolor: "var(--primary-color)", color: "var(--white)", fontWeight: "bold", "&:hover": { bgcolor: "var(--sea-nymph)" } }} onClick={handleSubmit}>
+            Add Product
+          </Button>
+        </Grid>
       </Grid>
-
-      {/* ✅ Video Upload */}
-      <input type="file" accept="video/*" onChange={handleVideoUpload} />
-      {product.video && (
-        <Card sx={{ mt: 2 }}>
-          <CardMedia component="video" controls height="200" src={product.video} />
-        </Card>
-      )}
-
-      <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleSubmit}>Add Product</Button>
     </Container>
   );
 };

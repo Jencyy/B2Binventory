@@ -5,6 +5,7 @@ import {
   Button,
   IconButton,
   Badge,
+  Box,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -27,37 +28,47 @@ const Navbar = () => {
     <AppBar
       position="static"
       sx={{
-        bgcolor: "var(--primary-color)", // 🟢 Primary Green Background
-        color: "var(--white)", // 🔥 White Text for Contrast
+        bgcolor: "var(--primary-color)",
+        color: "var(--white)",
+        padding: "10px 0",
       }}
     >
-      <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: "bold" }}>
-          <Button
-            onClick={() => navigate("/")}
-            sx={{ color: "var(--white)", fontSize: "18px" }}
-          >
-            🏢 B2B Inventory
-          </Button>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Logo / Home */}
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: "bold", cursor: "pointer" }}
+          onClick={() => navigate("/")}
+        >
+          B2B Inventory
         </Typography>
 
+        {/* Admin Navigation */}
         {userRole === "admin" ? (
-          <>
+          <Box sx={{ display: "flex", gap: "15px" }}>
             <Button
-              sx={{ color: "var(--white)", fontWeight: "bold" }}
+              sx={{
+                color: "var(--white)",
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
               onClick={() => navigate("/add-product")}
             >
-              ➕ Add Product
+              Add Product
             </Button>
             <Button
-              sx={{ color: "var(--white)", fontWeight: "bold" }}
+              sx={{
+                color: "var(--white)",
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
               onClick={() => navigate("/orders")}
             >
-              📦 View Orders
+              View Orders
             </Button>
-          </>
+          </Box>
         ) : (
-          <>
+          <Box sx={{ display: "flex", gap: "15px", alignItems: "center" }}>
             <Link to="/cart">
               <IconButton sx={{ color: "var(--white)" }}>
                 <Badge badgeContent={cartCount} color="secondary">
@@ -66,31 +77,38 @@ const Navbar = () => {
               </IconButton>
             </Link>
             <Button
-              sx={{ color: "var(--white)", fontWeight: "bold" }}
+              sx={{
+                color: "var(--white)",
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
               onClick={() => navigate("/my-orders")}
             >
-              🛍️ My Orders
+              My Orders
             </Button>
-          </>
+          </Box>
         )}
 
-        {userName && (
-          <Typography variant="subtitle1" sx={{ mx: 2, fontWeight: "bold" }}>
-            {userName} ({userRole})
-          </Typography>
-        )}
-
-        <Button
-          sx={{
-            bgcolor: "var(--white)",
-            color: "var(--primary-color)",
-            "&:hover": { bgcolor: "var(--sea-nymph)" },
-            fontWeight: "bold",
-          }}
-          onClick={handleLogout}
-        >
-          🚪 Logout
-        </Button>
+        {/* User Info & Logout */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {userName && (
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {userName} ({userRole})
+            </Typography>
+          )}
+          <Button
+            sx={{
+              bgcolor: "var(--white)",
+              color: "var(--primary-color)",
+              fontWeight: "bold",
+              textTransform: "none",
+              "&:hover": { bgcolor: "var(--sea-nymph)" },
+            }}
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </Box>
       </Toolbar>
     </AppBar>
   );
