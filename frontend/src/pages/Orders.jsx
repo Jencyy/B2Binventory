@@ -1,37 +1,35 @@
-import { useState, useEffect } from "react";
-import { Container, Button, Typography, TextField } from "@mui/material";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { Container, Typography, Card, CardContent } from "@mui/material";
 
 const Orders = () => {
-  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/products").then(res => setProducts(res.data));
+    axios.get("http://localhost:5000/api/orders/my-orders", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    })
+    .then((res) => setOrders(res.data))
+    .catch((err) => console.error("Error fetching orders", err));
   }, []);
-
-  const placeOrder = async (productId, quantity) => {
-    try {
-      await axios.post("http://localhost:5000/api/orders/place", {
-        productId,
-        quantity,
-        address: "123 Street, NY",
-        paymentMethod: "Credit Card",
-      });
-      alert("Order Placed!");
-    } catch (error) {
-      alert("Failed to place order.");
-    }
-  };
 
   return (
     <Container>
-      <Typography variant="h4">Order Products</Typography>
-      {products.map(product => (
-        <div key={product._id}>
-          <Typography>{product.name} - ${product.price}</Typography>
-          <TextField type="number" placeholder="Quantity" />
-          <Button onClick={() => placeOrder(product._id, 1)}>Order</Button>
-        </div>
+      <Typography variant="h4">My Orders</Typography>
+      {orders.map((order) => (
+        <Card key={order._id} sx={{ mb: 2 }}>
+          <CardContent>
+            <Typography>Order ID: {order._id}</Typography>
+            <Typography>Status: {order.status}</Typography>
+            <Typography>Products:</Typography>
+            {order.product ? (
+              <Typography>{order.product.name} - {order.quantity} pcs</Typography>
+            ) : (
+              <Typography>Product Deleted</Typography>
+            )}
+            <Typography>Total: ${order.totalPrice}</Typography>
+          </CardContent>
+        </Card>
       ))}
     </Container>
   );

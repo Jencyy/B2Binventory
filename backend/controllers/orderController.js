@@ -4,7 +4,7 @@ const Product = require("../models/Product");
 // Businessman places an order
 exports.placeOrder = async (req, res) => {
   try {
-    const { productId, quantity, address, paymentMethod } = req.body;
+    const { productId, quantity, address, paymentMethod, userId } = req.body;
     const product = await Product.findById(productId);
 
     if (!product || product.stock < quantity) {
@@ -13,12 +13,13 @@ exports.placeOrder = async (req, res) => {
 
     const totalPrice = quantity * product.price;
     const order = new Order({
-      user: req.user.id,
+      user: userId || req.user.id, // ✅ Admin can place an order for any user
       product: productId,
       quantity,
       totalPrice,
       address,
       paymentMethod,
+      placedBy: req.user.role, // ✅ Track who placed the order (Admin or Client)
     });
 
     await order.save();
@@ -49,7 +50,12 @@ exports.updateOrderStatus = async (req, res) => {
     order.status = status;
     await order.save();
 
-    res.json({ message: `Order ${status}` });
+    if (status === "delivered") {
+      // ✅ Notify User via WhatsApp (Optional)
+      console.log(`✅ Order ${order._id} marked as Delivered!`);
+    }
+
+    res.json({ message: `Order status updated to ${status}` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

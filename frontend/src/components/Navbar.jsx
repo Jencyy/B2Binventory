@@ -82,7 +82,7 @@ const Navbar = () => {
                 fontWeight: "bold",
                 textTransform: "none",
               }}
-              onClick={() => navigate("/my-orders")}
+              onClick={() => navigate("/orders")}
             >
               My Orders
             </Button>

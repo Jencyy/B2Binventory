@@ -7,7 +7,7 @@ const OrderSchema = new mongoose.Schema({
   totalPrice: Number,
   address: String,
   paymentMethod: String,
-  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" }
+  status: { type: String, enum: ["pending", "approved", "rejected","delivered"], default: "pending" }
 });
 
 module.exports = mongoose.model("Order", OrderSchema);

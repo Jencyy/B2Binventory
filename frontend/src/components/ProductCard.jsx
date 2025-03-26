@@ -178,7 +178,7 @@ const ProductCard = ({ product, onDelete, onUpdate }) => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
+            <Button sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", "&:hover": { bgcolor: "var(--sea-nymph)" } }} onClick={() => setOpen(false)}>Cancel</Button>
             <Button
               onClick={handleAddToCart}
               sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", "&:hover": { bgcolor: "var(--sea-nymph)" } }}
