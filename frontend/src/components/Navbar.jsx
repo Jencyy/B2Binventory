@@ -40,7 +40,7 @@ const Navbar = () => {
           sx={{ fontWeight: "bold", cursor: "pointer" }}
           onClick={() => navigate("/")}
         >
-          B2B Inventory
+           Inventory
         </Typography>
 
         {/* Admin Navigation */}
