@@ -15,79 +15,108 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// User Registration with Email Verification
+// User Registration by Admin
 exports.register = async (req, res) => {
   try {
-    console.log("Received Data:", req.body); // Log incoming request data
-    const { name, email, password, role } = req.body;
+    console.log("Received Request Body:", req.body); // Debugging line
 
-    if (!name || !email || !password) {
+    const { name, email, phone, whatsapp, address, password, role, passwordExpiry } = req.body;
+
+    if (!name || !email || !phone || !whatsapp || !address || !password || !role) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    // Ensure only "admin" or "businessman" roles are allowed
-    if (!["admin", "businessman"].includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword, role });
-    await user.save();
 
-    console.log("Saving User:", user); // Log user before saving
-    await user.save();
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Send verification email
-    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    const verificationLink = `http://localhost:5173/verify-email/${token}`;
-
-    console.log("Sending Email...");
-    await transporter.sendMail({
-      to: email,
-      subject: "Verify Your Email",
-      html: `<a href="${verificationLink}">Click here to verify</a>`,
+    // Ensure passwordExpiry is a number (or set default to 1440 minutes)
+    const expiryMinutes = passwordExpiry ? parseInt(passwordExpiry, 10) : 1440;
+    const passwordExpiresAt = expiryMinutes > 0 ? new Date(Date.now() + expiryMinutes * 60000) : null;
+    const expiryDuration = req.body.passwordExpiry; // Minutes
+    const expiryDate = expiryDuration === 0 ? null : new Date(Date.now() + expiryDuration * 60000);
+    
+    // Create new user
+    const newUser = new User({
+      name,
+      email,
+      phone,
+      whatsapp,
+      address,
+      password: hashedPassword, // Save hashed password
+      role: role || businessman,
+      passwordExpiresAt, 
+      passwordExpiry: expiryDate,
     });
 
-    console.log("Email Sent.");
-    res.status(200).json({ message: "Registration successful. Check your email for verification link." });
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Error in Register Route:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Registration Error:", error);  
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
 
-// Email Verification
-exports.verifyEmail = async (req, res) => {
-  try {
-    const { token } = req.params;
-    const decoded = jwt.verify(token, 'B2B');
-
-    const user = await User.findOne({ email: decoded.email });
-    if (!user) return res.status(400).json({ message: "Invalid token" });
-
-    user.isVerified = true;
-    await user.save();
-
-    res.status(200).json({ message: "Email verified successfully!" });
-  } catch (error) {
-    res.status(500).json({ error: "Invalid or expired token" });
-  }
-};
-
-// Login
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    // Ensure user.role is available before signing token
+    if (!user.role) {
+      return res.status(500).json({ message: "User role is missing" });
+    }
+    if (user.passwordExpiry && new Date() > user.passwordExpiry) {
+      return res.status(403).json({ message: "Your password has expired. Contact admin." });
+    }
 
-    res.json({ token, role: user.role }); // ✅ Send role to frontend
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.json({
+      token,
+      role: user.role,  // ✅ Ensure role is included
+      name: user.name
+    });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Login Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Password Reset by Admin
+exports.resetPassword = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can reset passwords." });
+    }
+
+    const { email, newPassword, expiryDuration } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: "User not found." });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    // Reset password expiry
+    user.passwordExpiry = new Date(Date.now() + expiryDuration * 60 * 1000);
+
+    await user.save();
+    res.status(200).json({ message: "Password reset successful.", passwordExpiry: user.passwordExpiry });
+
+  } catch (error) {
+    console.error("Password Reset Error:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };

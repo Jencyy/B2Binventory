@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, TextField, Button, Typography, Box, Paper } from "@mui/material";
+import { Container, TextField, Button, Typography, Paper } from "@mui/material";
 import axios from "axios";
 
 const Login = () => {
@@ -11,15 +11,22 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       const { data } = await axios.post("http://localhost:5000/api/auth/login", { email, password });
-
       localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role); // ✅ Store role
-
-      window.location.href = "/"; // Redirect after login
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("userName", data.name);
+      window.location.href = "/";
     } catch (error) {
-      alert("Login failed: " + (error.response?.data?.message || error.message));
+      alert(error.response?.data?.message || "Login failed!");
     }
   };
+  useEffect(() => {
+    const expiry = localStorage.getItem("passwordExpiry");
+    if (expiry && new Date() > new Date(expiry)) {
+      alert("Your password has expired. Contact admin.");
+      localStorage.clear();
+      navigate("/expired");
+    }
+  }, []);
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>
@@ -48,29 +55,12 @@ const Login = () => {
 
         <Button
           variant="contained"
-          sx={{
-            mt: 3,
-            bgcolor: "var(--primary-color)",
-            color: "var(--white)",
-            fontWeight: "bold",
-            "&:hover": { bgcolor: "var(--sea-nymph)" },
-          }}
+          sx={{ mt: 3, bgcolor: "var(--primary-color)", color: "var(--white)", fontWeight: "bold", "&:hover": { bgcolor: "var(--sea-nymph)" } }}
           onClick={handleLogin}
           fullWidth
         >
           Login
         </Button>
-
-        {/* ✅ Sign Up Link */}
-        <Typography variant="body2" sx={{ mt: 2 }}>
-          Don't have an account?{" "}
-          <Button
-            sx={{ color: "var(--primary-color)", fontWeight: "bold", textTransform: "none" }}
-            onClick={() => navigate("/register")}
-          >
-            Sign Up
-          </Button>
-        </Typography>
       </Paper>
     </Container>
   );
