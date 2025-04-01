@@ -7,6 +7,7 @@ import Orders from "./pages/Orders";
 import AddProduct from "./pages/AddProduct";
 import CartPage from "./pages/CartPage";
 import Navbar from "./components/Navbar";
+import Expired from "./pages/Expired";
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/orders" element={<Orders />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/expired" element={<Expired />} />
       </Routes>
     </Router>
     </>

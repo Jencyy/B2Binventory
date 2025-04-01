@@ -1,14 +1,27 @@
-const Expired = () => (
-    <Container maxWidth="xs" sx={{ mt: 8 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, textAlign: "center", bgcolor: "var(--white)" }}>
-        <Typography variant="h4" sx={{ fontWeight: "bold", color: "var(--primary-color)", mb: 2 }}>
-          Password Expired
-        </Typography>
-        <Typography color="error" variant="h6">
-          Your password has expired. Contact the admin to reset it.
-        </Typography>
-      </Paper>
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Container, Typography, Button } from "@mui/material";
+
+const Expired = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.clear(); // ✅ Ensures no old tokens remain
+  }, []);
+
+  return (
+    <Container maxWidth="sm" sx={{ textAlign: "center", mt: 8 }}>
+      <Typography variant="h5" color="error">Your password has expired!</Typography>
+      <Typography variant="body1" sx={{ mt: 2 }}>Please contact the admin to reset your password.</Typography>
+      <Button 
+        variant="contained" 
+        sx={{ mt: 3 }} 
+        onClick={() => navigate("/login")}
+      >
+        Go to Login
+      </Button>
     </Container>
   );
-  export default Expired;
-  
+};
+
+export default Expired;

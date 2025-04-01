@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 import { Container, TextField, Button, Typography, Paper } from "@mui/material";
 import axios from "axios";
 
@@ -22,11 +22,10 @@ const Login = () => {
   useEffect(() => {
     const expiry = localStorage.getItem("passwordExpiry");
     if (expiry && new Date() > new Date(expiry)) {
-      alert("Your password has expired. Contact admin.");
       localStorage.clear();
-      navigate("/expired");
+      navigate("/expired", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>
