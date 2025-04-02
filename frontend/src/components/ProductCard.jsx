@@ -12,26 +12,37 @@ import {
   Box,
   IconButton,
 } from "@mui/material";
-import EditProduct from "./EditProduct";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCartAsync } from "../../redux/cartSlice";
+import { addToWishlist, removeFromWishlist } from "../../redux/wishlistSlice";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import EditProduct from "./EditProduct";
+
+// ✅ Define API base URL
+const baseURL = "http://localhost:5000"; // Change to your actual backend URL
 
 const ProductCard = ({ product, onDelete, onUpdate }) => {
   const dispatch = useDispatch();
-  const userRole = localStorage.getItem("role") || "user"; // ✅ Fix: Ensure role is set
-  const isAdmin = userRole === "admin"; // ✅ Ensure Admin check works
 
+  // ✅ Get User Role from Local Storage
+  const userRole = localStorage.getItem("role") || "user";
+  const isAdmin = userRole === "admin";
+
+  // ✅ Handle Undefined Product Case
   if (!product || !product.name) {
     console.error("❌ ProductCard received an undefined product:", product);
     return null;
   }
 
+  // ✅ Manage Component State
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
 
+  // ✅ Handle Add to Cart
   const handleAddToCart = () => {
     if (quantity > product.stock) {
       alert("Not enough stock available!");
@@ -41,18 +52,33 @@ const ProductCard = ({ product, onDelete, onUpdate }) => {
     setOpen(false);
   };
 
-  // ✅ Fix Image Loading: Add Full URL to Images & Video
-  const baseURL = "http://localhost:5000"; // Change to your actual backend URL
+  // ✅ Construct Media Files List (Images & Video)
   const images = product.images.map(img => `${baseURL}${img}`);
   const video = product.video ? `${baseURL}${product.video}` : null;
-  const mediaFiles = [...images, ...(video ? [video] : [])]; // Combine images & video
+  const mediaFiles = [...images, ...(video ? [video] : [])];
 
-  const nextMedia = () => {
-    setCurrentMediaIndex((prev) => (prev + 1) % mediaFiles.length);
+  // ✅ Media Slider Controls
+  const nextMedia = () => setCurrentMediaIndex((prev) => (prev + 1) % mediaFiles.length);
+  const prevMedia = () => setCurrentMediaIndex((prev) => (prev - 1 + mediaFiles.length) % mediaFiles.length);
+
+  // ✅ Handle WhatsApp Inquiry
+  const handleInquiry = () => {
+    const whatsappNumber = "+919664851087"; // Change to your WhatsApp number
+    const message = `Hello, I'm interested in "${product.name}".\n\nPrice: $${product.price}\n\nCan you provide more details?`;
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank");
   };
 
-  const prevMedia = () => {
-    setCurrentMediaIndex((prev) => (prev - 1 + mediaFiles.length) % mediaFiles.length);
+  // ✅ Wishlist Handling
+  const wishlist = useSelector((state) => state.wishlist.wishlist);
+  const isInWishlist = wishlist.some(item => item.productId._id === product._id);
+  const user = useSelector((state) => state.auth.user)
+  const handleWishlist = () => {
+    if (!user?._id) {
+      alert("You need to be logged in to add to wishlist");
+      return;
+    }
+    isInWishlist ? dispatch(removeFromWishlist(product._id)) : dispatch(addToWishlist({ productId: product._id,userId: user._id }));
+    ;
   };
 
   return (
@@ -66,144 +92,57 @@ const ProductCard = ({ product, onDelete, onUpdate }) => {
         "&:hover": { transform: "scale(1.02)", boxShadow: "0px 8px 20px rgba(0,0,0,0.15)" },
       }}
     >
-      {/* ✅ Fixed Image & Video Slider */}
-      {mediaFiles.length > 0 ? (
-        <Box
-          sx={{
-            position: "relative",
-            width: "100%",
-            height: "220px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "var(--gray)",
-            borderRadius: "12px 12px 0 0",
-          }}
-        >
-          {/* Previous Button */}
-          {mediaFiles.length > 1 && (
-            <IconButton
-              onClick={prevMedia}
-              sx={{
-                position: "absolute",
-                left: "10px",
-                bgcolor: "rgba(0,0,0,0.4)",
-                color: "white",
-                "&:hover": { bgcolor: "rgba(0,0,0,0.6)" },
-              }}
-            >
-              <ArrowBackIosNewIcon />
-            </IconButton>
-          )}
+      {/* Wishlist Button */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
+        <IconButton  onClick={handleWishlist} sx={{ color: isInWishlist ? "red" : "gray" }}>
+          {isInWishlist ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+        </IconButton>
+      </Box>
 
-          {/* Media Display (Image or Video) */}
+      {/* Media Slider (Images & Video) */}
+      {mediaFiles.length > 0 ? (
+        <Box sx={{ position: "relative", width: "100%", height: "220px", bgcolor: "var(--gray)", borderRadius: "12px 12px 0 0" }}>
           {mediaFiles[currentMediaIndex].endsWith(".mp4") ? (
             <video width="100%" height="100%" controls style={{ borderRadius: "12px 12px 0 0", objectFit: "cover" }}>
               <source src={mediaFiles[currentMediaIndex]} type="video/mp4" />
             </video>
           ) : (
-            <img
-              src={mediaFiles[currentMediaIndex]}
-              alt={`Product ${currentMediaIndex}`}
-              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px 12px 0 0" }}
-            />
+            <img src={mediaFiles[currentMediaIndex]} alt="Product" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px 12px 0 0" }} />
           )}
 
-          {/* Next Button */}
+          {/* Slider Controls */}
           {mediaFiles.length > 1 && (
-            <IconButton
-              onClick={nextMedia}
-              sx={{
-                position: "absolute",
-                right: "10px",
-                bgcolor: "rgba(0,0,0,0.4)",
-                color: "white",
-                "&:hover": { bgcolor: "rgba(0,0,0,0.6)" },
-              }}
-            >
-              <ArrowForwardIosIcon />
-            </IconButton>
+            <>
+              <IconButton onClick={prevMedia} sx={{ position: "absolute", left: "10px", color: "white", bgcolor: "rgba(0,0,0,0.4)", "&:hover": { bgcolor: "rgba(0,0,0,0.6)" } }}>
+                <ArrowBackIosNewIcon />
+              </IconButton>
+              <IconButton onClick={nextMedia} sx={{ position: "absolute", right: "10px", color: "white", bgcolor: "rgba(0,0,0,0.4)", "&:hover": { bgcolor: "rgba(0,0,0,0.6)" } }}>
+                <ArrowForwardIosIcon />
+              </IconButton>
+            </>
           )}
         </Box>
       ) : (
-        <img
-          src="/placeholder.jpg"
-          alt="Placeholder"
-          style={{ width: "100%", height: "220px", objectFit: "cover", borderRadius: "12px 12px 0 0" }}
-        />
+        <img src="/placeholder.jpg" alt="Placeholder" style={{ width: "100%", height: "220px", objectFit: "cover", borderRadius: "12px 12px 0 0" }} />
       )}
 
+      {/* Product Details */}
       <CardContent>
-        <Typography variant="h6" sx={{ fontWeight: "bold", color: "var(--primary-color)", textAlign: "center" }}>
-          {product.name}
-        </Typography>
-        <Typography variant="body2" sx={{ textAlign: "center", color: "var(--nandor)" }}>
-          Category: {product.category?.name || "N/A"}
-        </Typography>
-        <Typography variant="body2" sx={{ textAlign: "center", color: "var(--nandor)" }}>
-          Price: ${product.price}
-        </Typography>
-        <Typography variant="body2" sx={{ textAlign: "center", color: "var(--nandor)" }}>
-          Stock: {product.stock}
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 1, textAlign: "center", color: "gray" }}>
-          {product.description || "No description available"}
-        </Typography>
+        <Typography variant="h6" sx={{ fontWeight: "bold", color: "var(--primary-color)", textAlign: "center" }}>{product.name}</Typography>
+        <Typography variant="body2" sx={{ textAlign: "center", color: "var(--nandor)" }}>Category: {product.category?.name || "N/A"}</Typography>
+        <Typography variant="body2" sx={{ textAlign: "center", color: "var(--nandor)" }}>Price: ${product.price}</Typography>
+        <Typography variant="body2" sx={{ textAlign: "center", color: "var(--nandor)" }}>Stock: {product.stock}</Typography>
 
-        {/* ✅ Add to Cart Button (for all users) */}
-        <Button
-          onClick={() => setOpen(true)}
-          sx={{
-            mt: 2,
-            width: "100%",
-            bgcolor: "var(--primary-color)",
-            color: "var(--white)",
-            fontWeight: "bold",
-            "&:hover": { bgcolor: "var(--sea-nymph)" },
-          }}
-        >
-          Add to Cart
-        </Button>
+        {/* Action Buttons */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+          <Button onClick={() => setOpen(true)} sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", fontWeight: "bold", "&:hover": { bgcolor: "var(--sea-nymph)" } }}>Add to Cart</Button>
+          <Button onClick={handleInquiry} sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", fontWeight: "bold", "&:hover": { bgcolor: "var(--sea-nymph)" } }}>Inquiry on WhatsApp</Button>
+        </Box>
 
-        {/* Quantity Dialog */}
-        <Dialog open={open} onClose={() => setOpen(false)}>
-          <DialogTitle>Select Quantity</DialogTitle>
-          <DialogContent>
-            <TextField
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
-              inputProps={{ min: 1, max: product.stock }}
-              fullWidth
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", "&:hover": { bgcolor: "var(--sea-nymph)" } }} onClick={() => setOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleAddToCart}
-              sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", "&:hover": { bgcolor: "var(--sea-nymph)" } }}
-            >
-              Confirm
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* ✅ Show Edit & Delete Buttons for Admin */}
+        {/* Admin Actions */}
         {isAdmin && (
           <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-            <Button
-              variant="contained"
-              sx={{
-                width: "50%",
-                bgcolor: "var(--primary-color)",
-                color: "var(--white)",
-                fontWeight: "bold",
-                "&:hover": { bgcolor: "red", color: "white" },
-              }}
-              onClick={() => onDelete(product._id)}
-            >
-              Delete
-            </Button>
+            <Button variant="contained" sx={{ bgcolor: "red", color: "white" }} onClick={() => onDelete(product._id)}>Delete</Button>
             <EditProduct product={product} onUpdate={onUpdate} />
           </Box>
         )}

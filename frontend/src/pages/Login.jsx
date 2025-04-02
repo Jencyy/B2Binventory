@@ -1,36 +1,49 @@
-import { useEffect, useState } from "react";
-import { replace, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, loginSuccess } from "../../redux/authSlice";
 import { Container, TextField, Button, Typography, Paper } from "@mui/material";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleLogin = async () => {
     try {
-      const { data } = await axios.post("http://localhost:5000/api/auth/login", { email, password });
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
-      localStorage.setItem("userName", data.name);
-      window.location.href = "/";
-    } catch (error) {
-      alert(error.response?.data?.message || "Login failed!");
+      const response = await dispatch(loginUser({ email, password })).unwrap();
+      console.log("API Response:", response);
+
+      const { id, name, role, token } = response;
+
+      dispatch(loginSuccess({ user: { id, name, role }, token }));
+      localStorage.setItem("user", JSON.stringify({ id, name, role }));
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role); // ✅ Store role for role-based UI handling
+
+      navigate("/"); // Redirect after successful login
+    } catch (err) {
+      console.error("Login failed:", err);
     }
   };
-  useEffect(() => {
-    const expiry = localStorage.getItem("passwordExpiry");
-    if (expiry && new Date() > new Date(expiry)) {
-      localStorage.clear();
-      navigate("/expired", { replace: true });
-    }
-  }, [navigate]);
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2, textAlign: "center", bgcolor: "var(--white)" }}>
-        <Typography variant="h4" sx={{ fontWeight: "bold", color: "var(--primary-color)", mb: 2 }}>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          borderRadius: 2,
+          textAlign: "center",
+          bgcolor: "var(--white)",
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: "bold", color: "var(--primary-color)", mb: 2 }}
+        >
           Login
         </Typography>
 
@@ -52,13 +65,22 @@ const Login = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {error && <Typography color="error">{error}</Typography>}
+
         <Button
           variant="contained"
-          sx={{ mt: 3, bgcolor: "var(--primary-color)", color: "var(--white)", fontWeight: "bold", "&:hover": { bgcolor: "var(--sea-nymph)" } }}
+          sx={{
+            mt: 3,
+            bgcolor: "var(--primary-color)",
+            color: "var(--white)",
+            fontWeight: "bold",
+            "&:hover": { bgcolor: "var(--sea-nymph)" },
+          }}
           onClick={handleLogin}
+          disabled={loading}
           fullWidth
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </Button>
       </Paper>
     </Container>

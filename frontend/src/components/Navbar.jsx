@@ -14,6 +14,8 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 const Navbar = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem("role"); // Get user role from local storage
+  const user = localStorage.getItem("user"); // Get user role from local storage
+
   const cartCount = useSelector((state) => state.cart?.cartItems?.length || 0);
 
 console.log(userRole,"dsfdasa")
@@ -22,6 +24,10 @@ console.log(userRole,"dsfdasa")
     localStorage.clear();
     navigate("/login");
   };
+  
+if (!user ) {
+  console.log("User not logged in");
+}
 
   return (
     <AppBar
