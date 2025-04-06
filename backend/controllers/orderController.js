@@ -33,11 +33,20 @@ exports.placeOrder = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().populate("product").populate("user");
+    
+    console.log("Fetched Orders:", orders); // ✅ Debugging Line
+    
+    if (!orders.length) {
+      return res.status(404).json({ message: "No orders found" });
+    }
+
     res.json(orders);
   } catch (error) {
+    console.error("Error fetching orders:", error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Admin approves/rejects orders
 exports.updateOrderStatus = async (req, res) => {

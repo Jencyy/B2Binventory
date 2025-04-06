@@ -12,22 +12,20 @@ const Login = () => {
   const { loading, error } = useSelector((state) => state.auth);
 
   const handleLogin = async () => {
-    try {
-      const response = await dispatch(loginUser({ email, password })).unwrap();
-      console.log("API Response:", response);
-
-      const { id, name, role, token } = response;
-
-      dispatch(loginSuccess({ user: { id, name, role }, token }));
-      localStorage.setItem("user", JSON.stringify({ id, name, role }));
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role); // ✅ Store role for role-based UI handling
-
-      navigate("/"); // Redirect after successful login
-    } catch (err) {
-      console.error("Login failed:", err);
-    }
+    const credentials = { email, password }; // ✅ Define credentials object
+  
+    dispatch(loginUser(credentials))
+      .then((result) => {
+        if (result.error) {
+          console.error("Login failed:", result.error);
+        } else {
+          console.log("Login Successful:", result.payload);
+          navigate("/"); // Redirect after successful login
+        }
+      });
   };
+  
+
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>

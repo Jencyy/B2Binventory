@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts, deleteProduct, updateProduct } from "../redux/productSlice";
 import ProductCard from "./ProductCard";
 import { Grid, Typography } from "@mui/material";
+import Sidebar from "./Sidebar";
 
 const ProductList = () => {
   const dispatch = useDispatch();
@@ -20,7 +21,11 @@ const ProductList = () => {
   if (error) return <Typography sx={{ textAlign: "center", mt: 5, color: "red" }}>Error: {error}</Typography>;
 
   return (
-    <Grid container spacing={3} sx={{ padding: "20px" }}>
+    <Grid sx={{ marginLeft: "250px", padding: "20px" }} container spacing={3}  >
+      <Sidebar
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+      />
       {products.map((product) => (
         <Grid item key={product._id} xs={12} sm={6} md={4} lg={3}>
           <ProductCard

@@ -4,13 +4,21 @@ const Category = require("../models/Category");
 exports.addCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const category = new Category({ name, description });
+    const imagePath = req.file ? `/uploads/category/${req.file.filename}` : "";
+
+    const category = new Category({
+      name,
+      description,
+      image: imagePath,
+    });
+
     await category.save();
     res.status(201).json({ message: "Category added successfully", category });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // ✅ Get All Categories
 exports.getAllCategories = async (req, res) => {

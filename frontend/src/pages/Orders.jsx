@@ -6,7 +6,7 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/orders/my-orders", {
+    axios.get("http://localhost:5000/api/orders/", {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     })
     .then((res) => setOrders(res.data))

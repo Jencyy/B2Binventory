@@ -2,9 +2,10 @@
     const router = express.Router();
     const categoryController = require("../controllers/categoryController");
     const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
+const upload = require("../config/multerConfig");
 
     // ✅ Add category (Admin Only)
-    router.post("/", verifyToken, isAdmin, categoryController.addCategory);
+    router.post("/", verifyToken, isAdmin,upload.single("image"), categoryController.addCategory);
 
     // ✅ Get all categories (Anyone can access)
     router.get("/", categoryController.getAllCategories);

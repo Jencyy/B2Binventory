@@ -1,6 +1,11 @@
 :root {
-    --primary-color: #044333;
-    --white: #f4f6e9;
-    --sea-nymph: #78a597;
-  }
-  
+  --primary-color: #000;
+  --white: #f4f6e9;
+  --viridian-green: #68877c;
+  --black: #040404;
+  --sea-nymph: #799b94;
+  --nandor: #4c5b55;
+  --cutty-sark: #4d6b64;
+  --gray: #848484;
+  --celtic: #0e2414;
+}

@@ -8,6 +8,8 @@ import AddProduct from "./pages/AddProduct";
 import CartPage from "./pages/CartPage";
 import Navbar from "./components/Navbar";
 import Expired from "./pages/Expired";
+import AddCategory from "./components/AddCategory";
+import WishlistPage from "./pages/WishlistPage";
 
 const App = () => {
   return (
@@ -20,6 +22,8 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/add-product" element={<AddProduct />} />
+        <Route path="/add-category" element={<AddCategory />} />
+<Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/register" element={<Register />} />

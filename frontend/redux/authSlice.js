@@ -21,26 +21,28 @@ const initialState = {
   };
   
 // Login User
-// ✅ Login User
 export const loginUser = createAsyncThunk(
-    "auth/login",
-    async (credentials, { rejectWithValue }) => {
-      try {
-        const { data } = await axios.post("http://localhost:5000/api/auth/login", credentials);
-        console.log("API Response:", data);
-  
-        const userData = { id: data.id, name: data.name, role: data.role }; // ✅ Ensure ID is stored
-  
-        localStorage.setItem("user", JSON.stringify(userData));
-        localStorage.setItem("token", data.token);
-  
-        return { user: userData, token: data.token }; // ✅ Return correct structure
-      } catch (error) {
-        return rejectWithValue(error.response?.data?.message || "Login failed!");
+  "auth/login",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post("http://localhost:5000/api/auth/login", credentials);
+      console.log("API Response:", data);
+      
+      if (!data.token) {
+        return rejectWithValue("No token received!");
       }
+
+      localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("token", data.token);
+
+      return { user: data, token: data.token };
+    } catch (error) {
+      console.error("Login error:", error);
+      return rejectWithValue(error.response?.data?.message || "Login failed!");
     }
-  );
-  
+  }
+);
+
 
 // Logout User
 export const logoutUser = createAsyncThunk("auth/logout", async () => {
@@ -95,8 +97,10 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "Login failed!";
+        console.log("Login Rejected:", action);
       })
+      
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
