@@ -3,8 +3,8 @@ import {
   Card, CardContent, Typography, Button, Dialog, Box, IconButton, TextField
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCartAsync } from "../../redux/cartSlice";
-import { addToWishlist, fetchWishlist, removeFromWishlist } from "../../redux/wishlistSlice";
+import { addToCartAsync } from "../redux/cartSlice";
+import { addToWishlist, fetchWishlist, removeFromWishlist } from "../redux/wishlistSlice";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import FavoriteIcon from "@mui/icons-material/Favorite";

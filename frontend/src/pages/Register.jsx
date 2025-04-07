@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "../../redux/authSlice";
+import { registerUser } from "../redux/authSlice";
 import { Container, TextField, Button, Typography, Paper, MenuItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 

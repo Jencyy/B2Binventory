@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchWishlist } from "../../redux/wishlistSlice"; // thunk action
+import { fetchWishlist } from "../redux/wishlistSlice"; // thunk action
 import { Card, CardContent, Typography, Grid } from "@mui/material";
 
 const WishlistPage = () => {

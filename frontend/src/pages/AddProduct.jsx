@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories, addCategory } from "../../redux/categorySlice";
+import { fetchCategories, addCategory } from "../redux/categorySlice";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DeleteIcon from "@mui/icons-material/Delete";
