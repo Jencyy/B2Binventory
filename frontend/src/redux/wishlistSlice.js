@@ -6,22 +6,15 @@ const API_URL = "http://localhost:5000/api/wishlist";
 // ✅ Fetch Wishlist
 export const fetchWishlist = createAsyncThunk(
   "wishlist/fetchWishlist",
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token"); // Get token from localStorage
-
-      if (!token) {
-        return rejectWithValue("No authentication token found");
-      }
-
-      const { data } = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }, // Send token
-        withCredentials: true,
+      const token = getState().auth.user?.token;
+      const response = await axios.get(API_URL, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      return data;
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to fetch wishlist");
+      return rejectWithValue(error.response?.data || { message: "Error fetching wishlist" });
     }
   }
 );
@@ -29,82 +22,98 @@ export const fetchWishlist = createAsyncThunk(
 // ✅ Add to Wishlist
 export const addToWishlist = createAsyncThunk(
   "wishlist/add",
-  async ({ productId, userId }, { rejectWithValue }) => {
+  async ({ productId, userId }, { getState, rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getState().auth.user?.token;
 
-      if (!token) {
-        return rejectWithValue("No authentication token found");
-      }
+      console.log("Sending to backend:", { productId, userId });
 
-      console.log("Sending request with productId:", productId, "and userId:", userId);
+      const response = await axios.post(
+        API_URL,
+        { productId, userId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      const response = await fetch("http://localhost:5000/api/wishlist/", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ productId, userId }),
-      });
-
-      const data = await response.json();
-
-      console.log("Response from API:", data);
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to add to wishlist");
-      }
-
-      return data;
+      return response.data;
     } catch (error) {
-      console.error("Error in addToWishlist:", error.message);
-      return rejectWithValue(error.message);
+      console.error("Add to wishlist error:", error.response?.data);
+      return rejectWithValue(error.response?.data || { message: "Error adding to wishlist" });
     }
   }
 );
 
+
 // ✅ Remove from Wishlist
 export const removeFromWishlist = createAsyncThunk(
-  "wishlist/removeFromWishlist",
-  async (productId, { rejectWithValue }) => {
+  "wishlist/remove",
+  async (productId, { getState, rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token"); // Get token from localStorage
-
-      if (!token) {
-        return rejectWithValue("No authentication token found");
-      }
+      const token = getState().auth.user?.token;
 
       await axios.delete(`${API_URL}/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` }, // Send token
-        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       return productId;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to remove from wishlist");
+      return rejectWithValue(error.response?.data || { message: "Error removing from wishlist" });
     }
   }
 );
 
-
 // ✅ Wishlist Slice
 const wishlistSlice = createSlice({
   name: "wishlist",
-  initialState: { wishlist: [], loading: false, error: null },
+  initialState: {
+    wishlist: [],
+    loading: false,
+    error: null,
+  },
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // 📦 Fetch Wishlist
+      .addCase(fetchWishlist.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchWishlist.fulfilled, (state, action) => {
         state.wishlist = action.payload;
+        state.loading = false;
       })
-      .addCase(removeFromWishlist.fulfilled, (state, action) => {
-        state.wishlist = state.wishlist.filter(item => item.productId !== action.payload);
+      .addCase(fetchWishlist.rejected, (state, action) => {
+        state.error = action.payload || "Error fetching wishlist";
+        state.loading = false;
       })
+
+      // ❤️ Add to Wishlist
       .addCase(addToWishlist.fulfilled, (state, action) => {
-       
-        state.wishlist.push(action.payload.wishlistItem); // ✅ Store `wishlistItem` properly
+        const item = action.payload?.wishlistItem || action.payload;
+        const exists = state.wishlist.find(
+          (i) => i.productId === item.productId || i.productId?._id === item.productId
+        );
+        if (!exists) {
+          state.wishlist.push(item);
+        }
+      })
+      .addCase(addToWishlist.rejected, (state, action) => {
+        state.error = action.payload || "Failed to add to wishlist";
+      })
+
+      // 💔 Remove from Wishlist
+      .addCase(removeFromWishlist.fulfilled, (state, action) => {
+        state.wishlist = state.wishlist.filter((item) => {
+          const id = typeof item.productId === "string" ? item.productId : item.productId?._id;
+          return id !== action.payload;
+        });
+      })
+      .addCase(removeFromWishlist.rejected, (state, action) => {
+        state.error = action.payload || "Failed to remove from wishlist";
       });
   },
 });

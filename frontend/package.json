@@ -16,11 +16,14 @@
     "@mui/material": "^6.4.7",
     "@reduxjs/toolkit": "^2.6.1",
     "axios": "^1.8.2",
+    "framer-motion": "^12.6.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.3.0",
-    "redux-persist": "^6.0.0"
+    "redux-persist": "^6.0.0",
+    "styled": "^1.0.0",
+    "styled-components": "^6.1.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

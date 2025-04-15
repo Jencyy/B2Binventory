@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories } from "../redux/categorySlice";
 import { Grid, Card, CardMedia, CardContent, Typography, Button } from "@mui/material";
+import CategoryBtn from "./CategoryBtn";
 
 const CategoryList = ({ onCategorySelect }) => {
   const dispatch = useDispatch();
@@ -15,15 +16,12 @@ const CategoryList = ({ onCategorySelect }) => {
 
   return (
     <Grid container spacing={2} sx={{ mt: 2 }}>
-         <Button
-        variant="outlined"
-        onClick={() => onCategorySelect(null)}
-      >
-        All Categories
-      </Button>
+    <Grid item style={{ display: "flex", alignItems: "center" }} xs={12} sm={6} md={1.5}>
+        <CategoryBtn label="All Categories" onClick={() => onCategorySelect(null)} />
+      </Grid>
       {loading && <Typography>Loading...</Typography>}
       {categories.map((category) => (
-        <Grid item xs={12} sm={6} md={3} key={category._id}>
+        <Grid item xs={12} sm={6} md={2} key={category._id}>
           <Card
             onClick={() => onCategorySelect(category.name)}
             sx={{

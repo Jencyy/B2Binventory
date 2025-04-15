@@ -19,7 +19,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Navbar = ({ onMenuClick, onSettingClick }) => {
   const navigate = useNavigate();
@@ -34,16 +34,25 @@ const Navbar = ({ onMenuClick, onSettingClick }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
 
-  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
+  const handleMenuOpen = (event) => {
+    if (event?.currentTarget) {
+      setAnchorEl(event.currentTarget);
+    }
+  };
+
   const handleMenuClose = () => setAnchorEl(null);
 
-
+  
   const handleLogout = () => {
+    setAnchorEl(null);
     localStorage.clear();
     navigate("/login");
   };
 
-
+  useEffect(() => {
+    // close menu whenever the route changes
+    setAnchorEl(null);
+  }, [location.pathname]);
 
   return (
     <>
@@ -134,12 +143,20 @@ const Navbar = ({ onMenuClick, onSettingClick }) => {
                   onClick={handleMenuOpen}
                 />
                 <Typography>{userName}</Typography>
-                <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-                  <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
-                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                </Menu>
               </>
             )}
+
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+            >
+              <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
+
           </Box>
         </Toolbar>
       </AppBar>
