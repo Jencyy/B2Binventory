@@ -19,9 +19,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const Navbar = () => {
+const Navbar = ({ onMenuClick, onSettingClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -32,198 +32,136 @@ const Navbar = () => {
   const cartCount = useSelector((state) => state.cart?.cartItems?.length || 0);
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+
+
+  const handleMenuOpen = (event) => {
+    if (event?.currentTarget) {
+      setAnchorEl(event.currentTarget);
+    }
+  };
+
   const handleMenuClose = () => setAnchorEl(null);
 
+  
   const handleLogout = () => {
+    setAnchorEl(null);
     localStorage.clear();
     navigate("/login");
   };
 
-  // ✅ Sidebar Drawer
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const toggleDrawer = (open) => () => setDrawerOpen(open);
-
-  // ✅ Sample Filter Options
-  const filterOptions = [
-    "All Categories",
-    "Electronics",
-    "Clothing",
-    "Home Appliances",
-    "Footwear",
-  ];
+  useEffect(() => {
+    // close menu whenever the route changes
+    setAnchorEl(null);
+  }, [location.pathname]);
 
   return (
     <>
-      <AppBar
-        position="static"
-        sx={{
-          bgcolor: "var(--primary-color)",
-          color: "var(--white)",
-          padding: "10px 0",
-        }}
-      >
+      <AppBar position="static" sx={{ bgcolor: "var(--primary-color)", color: "var(--white)", py: 1 }}>
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          {/* ✅ Left Side: Burger + Logo */}
+          {/* LEFT SIDE: Logo + Burger if on Home */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {location.pathname === "/" && (
-              <IconButton
-                edge="start"
-                sx={{ color: "var(--white)" }}
-                onClick={toggleDrawer(true)}
-              >
+            {/* ✅ Show burger icon only when prop is passed */}
+            {onMenuClick && (
+              <IconButton onClick={onMenuClick} sx={{ color: "white" }}>
                 <MenuIcon />
               </IconButton>
             )}
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: "bold", cursor: "pointer" }}
-              onClick={() => navigate("/")}
-            >
+            <Typography variant="h6" onClick={() => navigate("/")} sx={{ cursor: "pointer", fontWeight: "bold" }}>
               Inventory
             </Typography>
           </Box>
 
-          {/* ✅ Navigation Links */}
-          <Box sx={{ display: "flex", gap: "20px", alignItems: "center" }}>
-            <Button
-              sx={{ color: "var(--white)", textTransform: "none" }}
-              onClick={() => navigate("/")}
-            >
+          {/* CENTER: Main Nav */}
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+            <Button onClick={() => navigate("/")} sx={{ color: "white", textTransform: "none" }}>
               Home
             </Button>
-            <Button
-              sx={{ color: "var(--white)", textTransform: "none" }}
-              onClick={() => navigate("/products")}
-            >
+            <Button onClick={() => navigate("/products")} sx={{ color: "white", textTransform: "none" }}>
               Products
             </Button>
-            <Button
-              sx={{ color: "var(--white)", textTransform: "none" }}
-              onClick={() => navigate("/add-category")}
-            >
-              Add category
+            <Button onClick={() => navigate("/add-category")} sx={{ color: "white", textTransform: "none" }}>
+              Add Category
             </Button>
-            <Button component={Link} to="/wishlist" sx={{ color: "#fff" }}>
-            My Wishlist
-          </Button>
-
-            <Button
-              sx={{ color: "var(--white)", textTransform: "none" }}
-              onClick={() => navigate("/contact")}
-            >
+            <Button component={Link} to="/wishlist" sx={{ color: "white", textTransform: "none" }}>
+              My Wishlist
+            </Button>
+            <Button onClick={() => navigate("/contact")} sx={{ color: "white", textTransform: "none" }}>
               Contact
             </Button>
 
-            {/* ✅ Admin-Specific Buttons */}
-            {userRole === "admin" && (
+            {userRole === "admin" ? (
               <>
-                <Button
-                  sx={{ color: "var(--white)", textTransform: "none" }}
-                  onClick={() => navigate("/add-product")}
-                >
+                <Button onClick={() => navigate("/add-product")} sx={{ color: "white", textTransform: "none" }}>
                   Add Product
                 </Button>
-                <Button
-                  sx={{ color: "var(--white)", textTransform: "none" }}
-                  onClick={() => navigate("/orders")}
-                >
+                <Button onClick={() => navigate("/orders")} sx={{ color: "white", textTransform: "none" }}>
                   View Orders
                 </Button>
                 <Button
+                  onClick={onSettingClick}
+                  sx={{ color: "white", textTransform: "none" }} >
+                  Settings
+                </Button>
+                <Button
+                  onClick={() => navigate("/register")}
                   sx={{
-                    color: "var(--white)",
-                    border: "1px solid var(--white)",
-                    borderRadius: "5px",
-                    padding: "5px 10px",
+                    color: "white",
+                    border: "1px solid white",
+                    borderRadius: 1,
+                    px: 2,
+                    py: 0.5,
                     textTransform: "none",
                   }}
-                  onClick={() => navigate("/register")}
                 >
                   Register User
                 </Button>
               </>
-            )}
-
-            {/* ✅ User-Specific Buttons */}
-            {userRole !== "admin" && (
+            ) : (
               <>
                 <Link to="/cart">
-                  <IconButton sx={{ color: "var(--white)" }}>
+                  <IconButton sx={{ color: "white" }}>
                     <Badge badgeContent={cartCount} color="secondary">
                       <ShoppingCartIcon />
                     </Badge>
                   </IconButton>
                 </Link>
-                <Button
-                  sx={{ color: "var(--white)", textTransform: "none" }}
-                  onClick={() => navigate("/orders")}
-                >
+                <Button onClick={() => navigate("/orders")} sx={{ color: "white", textTransform: "none" }}>
                   My Orders
                 </Button>
               </>
             )}
           </Box>
 
-          {/* ✅ User Profile */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* RIGHT SIDE: Avatar + Menu */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {userName && (
               <>
                 <Avatar
                   src={userAvatar}
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    cursor: "pointer",
-                    border: "2px solid var(--white)",
-                  }}
+                  alt={userName}
+                  sx={{ width: 40, height: 40, border: "2px solid white", cursor: "pointer" }}
                   onClick={handleMenuOpen}
                 />
                 <Typography>{userName}</Typography>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleMenuClose}
-                >
-                  <MenuItem onClick={() => navigate("/profile")}>
-                    Profile
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                </Menu>
               </>
             )}
+
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+            >
+              <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
+
           </Box>
         </Toolbar>
       </AppBar>
 
-      {/* ✅ Sidebar Drawer for Filters */}
-      <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
-        <Box
-          sx={{ width: 250, padding: 2 }}
-          role="presentation"
-          onClick={toggleDrawer(false)}
-        >
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Filters
-          </Typography>
-          <Divider />
-          <List>
-            {filterOptions.map((option, index) => (
-              <ListItem
-                button
-                key={index}
-                onClick={() => {
-                  console.log("Filter by:", option);
-                  // applyFilter(option); // if using Redux or Query Params
-                }}
-              >
-                <ListItemText primary={option} />
-              </ListItem>
-            ))}
-            
-          </List>
-        </Box>
-      </Drawer>
+
     </>
   );
 };

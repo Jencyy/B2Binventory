@@ -83,6 +83,26 @@ const removeCartItem = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+const clearCart = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming you have user info in req.user (from verifyToken)
+
+    // Find the user's cart and clear it
+    const cart = await Cart.findOneAndUpdate(
+      { userId },
+      { $set: { items: [] } }, // Empty the cart
+      { new: true }
+    );
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    res.status(200).json({ message: 'Cart cleared successfully', cart });
+  } catch (error) {
+    res.status(500).json({ message: 'Error clearing cart', error });
+  }
+};
 
 
-module.exports = { getCart, addToCart, updateCartItem, removeCartItem };
+module.exports = { getCart, addToCart, updateCartItem, removeCartItem ,clearCart};

@@ -4,7 +4,7 @@ const Category = require("../models/Category");
 exports.addCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const imagePath = req.file ? `/uploads/category/${req.file.filename}` : "";
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : "";
 
     const category = new Category({
       name,

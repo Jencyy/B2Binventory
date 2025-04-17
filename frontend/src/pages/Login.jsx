@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, loginSuccess } from "../../redux/authSlice";
+import { loginUser, loginSuccess } from "../redux/authSlice";
 import { Container, TextField, Button, Typography, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 

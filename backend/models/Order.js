@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+// models/Order.js
+
 const OrderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
@@ -7,7 +9,12 @@ const OrderSchema = new mongoose.Schema({
   totalPrice: Number,
   address: String,
   paymentMethod: String,
-  status: { type: String, enum: ["pending", "approved", "rejected","delivered"], default: "pending" }
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected", "delivered", "cancelled"], // ✅ Add 'cancelled'
+    default: "pending",
+  },
 });
+
 
 module.exports = mongoose.model("Order", OrderSchema);

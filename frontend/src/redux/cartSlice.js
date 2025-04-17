@@ -7,8 +7,12 @@ const API_URL = "http://localhost:5000/api/cart";
 export const fetchCart = createAsyncThunk("cart/fetchCart", async (_, { rejectWithValue }) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.get('http://localhost:5000/api/cart', { headers: { Authorization: `Bearer ${token}` } });
-    return response.data.items; // Ensure backend sends an array of items
+    const response = await axios.get('http://localhost:5000/api/cart', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log("Cart fetched:", response.data);  // Log the response to ensure it's correct
+    return response.data.items; // Make sure the API returns an empty array after clearing
   } catch (error) {
     return rejectWithValue(error.response?.data || "Failed to fetch cart");
   }
