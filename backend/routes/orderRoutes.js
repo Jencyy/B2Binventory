@@ -6,6 +6,6 @@ const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 router.post("/place", verifyToken, orderController.placeOrder);
 router.get("/", verifyToken, orderController.getAllOrders);
 router.put("/:id/status", verifyToken, isAdmin, orderController.updateOrderStatus);
-router.put("/:id/cancel", verifyToken, orderController.cancelOwnOrder);
+router.put("/:orderId/cancel", verifyToken, orderController.cancelOrder);
 
 module.exports = router;

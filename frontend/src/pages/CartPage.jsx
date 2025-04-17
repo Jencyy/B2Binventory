@@ -35,25 +35,49 @@ const CartPage = () => {
 
   const handlePlaceOrder = async () => {
     try {
+      // Ensure the cart has items
+      if (cartItems.length === 0) {
+        alert("Your cart is empty.");
+        return;
+      }
+  
+      // Loop through the cart and place an order for each item
       for (const item of cartItems) {
         await dispatch(
           placeOrderAsync({
             productId: item.productId._id,
             quantity: item.quantity,
-            address: "Default Address", // You can make this dynamic with a form
-            paymentMethod: "COD",       // You can let user choose
+            address: "Default Address",
+            paymentMethod: "COD",
           })
         ).unwrap();
       }
   
-      dispatch(clearCart());
+      // After placing the order, clear the cart
+      dispatch(clearCart()); // Clear the cart in Redux
+  
+      // Optionally, clear cart data from the backend too if needed
+      await axios.delete('/api/cart/clear'); // Example endpoint to clear the cart from the server if required
+  
+      // Navigate to the Orders page after clearing the cart
       navigate("/orders");
+  
     } catch (error) {
       console.error("Error placing order:", error);
+      alert("There was an error while placing your order.");
     }
   };
-  
+  // In your CartPage component, where you want to clear the cart
+const handleClearCart = async () => {
+  try {
+    await axios.delete('http://localhost:5000/api/cart/clear');  // Clear cart on backend
+    dispatch(clearCart());  // Update Redux store
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+  }
+};
 
+  
   if (loading) return <Typography>Loading cart...</Typography>;
   if (error) return <Typography color="error">Error loading cart: {error}</Typography>;
 
@@ -62,31 +86,28 @@ const CartPage = () => {
       <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold", color: "var(--primary-color)" }}>
         Your Cart
       </Typography>
-
+  
       {cartItems.length === 0 ? (
+        // If there are no items in the cart, show this message
         <Typography>Your cart is empty.</Typography>
       ) : (
+        // If there are items, show the cart items
         cartItems.map((item) => {
           if (!item.productId) return null;
-
+  
           return (
             <Card key={item._id} sx={{ display: "flex", mb: 2, p: 2, alignItems: "center", boxShadow: 3 }}>
               <CardMedia
                 component="img"
-                image={
-                  item.productId.images?.length > 0
-                    ? `${baseURL}${item.productId.images[0]}`
-                    : "/placeholder.jpg"
-                }
+                image={item.productId.images?.length > 0 ? `${baseURL}${item.productId.images[0]}` : "/placeholder.jpg"}
                 alt={item.productId.name}
                 sx={{ width: 80, height: 80, borderRadius: "8px", objectFit: "cover", mr: 2 }}
               />
-
               <CardContent sx={{ flex: 1 }}>
                 <Typography variant="h6">{item.productId.name}</Typography>
                 <Typography variant="body2">Quantity: {item.quantity}</Typography>
               </CardContent>
-
+  
               <Button
                 variant="contained"
                 color="error"
@@ -99,7 +120,7 @@ const CartPage = () => {
           );
         })
       )}
-
+  
       {cartItems.length > 0 && (
         <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap" }}>
           <Button
@@ -134,6 +155,7 @@ const CartPage = () => {
       )}
     </Box>
   );
+  
 };
 
 export default CartPage;
