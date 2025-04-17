@@ -41,7 +41,8 @@ exports.removeFromWishlist = async (req, res) => {
 // ✅ Get User's Wishlist
 exports.getUserWishlist = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.id; 
+ 
         const wishlist = await Wishlist.find({ userId }).populate("productId");
         res.json(wishlist);
     } catch (err) {

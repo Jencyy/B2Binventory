@@ -1,4 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { useState } from "react";
+
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -10,28 +12,53 @@ import Navbar from "./components/Navbar";
 import Expired from "./pages/Expired";
 import AddCategory from "./components/AddCategory";
 import WishlistPage from "./pages/WishlistPage";
+import Products from "./pages/Products";
+import AdminSidebar from "./components/AdminSidebar";
 
-const App = () => {
+import { Box } from "@mui/material"; // ✅ add this
+
+const AppRoutes = () => {
+  const location = useLocation();
+  const [showAdminSidebar, setShowAdminSidebar] = useState(false);
+  const hideNavbarOn = ["/products"];
+  const isAdmin = localStorage.getItem("role") === "admin";
+
   return (
-    <>
-    
-    <Router>
-    <Navbar/>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/verify-email/:token" element={<VerifyEmail />} />
-        <Route path="/add-product" element={<AddProduct />} />
-        <Route path="/add-category" element={<AddCategory />} />
-<Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/expired" element={<Expired />} />
-      </Routes>
-    </Router>
-    </>
-);
+    <Box sx={{ display: "flex" }}>
+      {/* ✅ Drawer always renders to the left */}
+      {isAdmin && showAdminSidebar && (
+        <AdminSidebar onClose={() => setShowAdminSidebar(false)} />
+      )}
+
+      <Box sx={{ flexGrow: 1 }}>
+        {/* ✅ Navbar only when allowed */}
+        {!hideNavbarOn.includes(location.pathname) && (
+          <Navbar onSettingClick={() => setShowAdminSidebar(true)} />
+        )}
+
+        {/* ✅ All your routed pages go here */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
+          <Route path="/add-product" element={<AddProduct />} />
+          <Route path="/add-category" element={<AddCategory />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/expired" element={<Expired />} />
+          <Route path="/products" element={<Products />} />
+        </Routes>
+      </Box>
+    </Box>
+  );
 };
+
+const App = () => (
+  <Router>
+    <AppRoutes />
+  </Router>
+);
 
 export default App;
