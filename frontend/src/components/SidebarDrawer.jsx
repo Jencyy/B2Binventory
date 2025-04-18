@@ -108,11 +108,12 @@ const SidebarDrawer = ({ children, onFilterChange }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" open={open}>
-        <Toolbar sx={{ padding: 0 }}>
-          <Navbar onMenuClick={() => setOpen(true)} />
-        </Toolbar>
-      </AppBar>
+    <AppBar position="fixed" open={open}>
+  <Toolbar sx={{ padding: 0 }}>
+    <Navbar onMenuClick={() => setOpen(true)} />
+  </Toolbar>
+</AppBar>
+
 
       <Drawer
         sx={{

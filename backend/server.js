@@ -9,27 +9,34 @@ connectDB();
 
 const app = express();
 
-// ✅ Properly configure CORS
+// CORS
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ Allow requests only from your frontend
-    credentials: true, // ✅ Allow credentials (cookies, tokens, etc.)
+    origin: "http://localhost:5173",
+    credentials: true,
   })
 );
 
-// ✅ Middleware
+// Middleware
 app.use(bodyParser.json());
 app.use(express.json());
 
-// ✅ Routes
+console.log("🧩 Registering all routes...");
+
+// Register routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));
 app.use("/api/categories", require("./routes/categoryRoutes"));
 app.use("/api/orders", require("./routes/orderRoutes"));
-app.use("/api/cart", require("./routes/cartRoutes"));
+
+// DEBUG: log right before registering cart
+console.log("📦 Registering /api/cart route...");
+const cartRoutes = require("./routes/cartRoutes");
+app.use("/api/cart", cartRoutes);
+
 app.use("/api/wishlist", require("./routes/wishlistRoutes"));
 app.use("/uploads", express.static("uploads"));
 
-// ✅ Start Server
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

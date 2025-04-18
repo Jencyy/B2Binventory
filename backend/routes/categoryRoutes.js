@@ -1,19 +1,19 @@
-    const express = require("express");
-    const router = express.Router();
-    const categoryController = require("../controllers/categoryController");
-    const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
+const express = require("express");
+const router = express.Router();
+const categoryController = require("../controllers/categoryController");
+const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 const upload = require("../config/multerConfig");
 
-    // ✅ Add category (Admin Only)
-    router.post("/", verifyToken, isAdmin,upload.single("image"), categoryController.addCategory);
+// ✅ Add category (Admin Only)
+router.post("/", verifyToken, isAdmin, upload.single("image"), categoryController.addCategory);
 
-    // ✅ Get all categories (Anyone can access)
-    router.get("/", categoryController.getAllCategories);
+// ✅ Get all categories (Anyone can access)
+router.get("/", categoryController.getAllCategories);
 
-    // ✅ Update category (Admin Only)
-    router.put("/:id", verifyToken, isAdmin, categoryController.updateCategory);
+// ✅ Update category (Admin Only)
+router.put("/:id", verifyToken, isAdmin, categoryController.updateCategory);
 
-    // ✅ Delete category (Admin Only)
-    router.delete("/:id", verifyToken, isAdmin, categoryController.deleteCategory);
+// ✅ Delete category (Admin Only)
+router.delete("/:id", verifyToken, isAdmin, categoryController.deleteCategory);
 
-    module.exports = router;
+module.exports = router;

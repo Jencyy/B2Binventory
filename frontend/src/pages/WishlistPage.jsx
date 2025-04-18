@@ -4,7 +4,7 @@ import {
   IconButton, Button, Stack, Skeleton
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import DeleteIcon from "@mui/icons-material/Delete";
+
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWishlist, removeFromWishlist } from "../redux/wishlistSlice";
@@ -36,7 +36,7 @@ const WishlistPage = () => {
       </Typography>
 
       {loading ? (
-        <Grid container spacing={3}>
+        <Grid container spacing={3}>  
           {Array.from({ length: 4 }).map((_, i) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
               <Skeleton variant="rectangular" height={250} sx={{ borderRadius: 3 }} />

@@ -101,3 +101,21 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+// GET /api/products/low-stock
+exports.getLowStockProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ stock: { $lt: 10 } }); // adjust threshold
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching low stock products" });
+  }
+};
+// GET /api/activities
+exports.getRecentActivities = async (req, res) => {
+  try {
+    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(20);
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching activities" });
+  }
+};

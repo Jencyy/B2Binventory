@@ -15,28 +15,34 @@ import WishlistPage from "./pages/WishlistPage";
 import Products from "./pages/Products";
 import AdminSidebar from "./components/AdminSidebar";
 
-import { Box } from "@mui/material"; // ✅ add this
+import AdminDashboard from "./pages/AdminDashboard";
+import ManageUsers from "./pages/ManageUsers";
+import ManageProducts from "./pages/ManageProducts";
+import ManageCategories from "./pages/ManageCategories";
+import LowStockProducts from "./pages/LowStockProducts";
+
+import { Box } from "@mui/material";
 
 const AppRoutes = () => {
   const location = useLocation();
   const [showAdminSidebar, setShowAdminSidebar] = useState(false);
-  const hideNavbarOn = ["/products"];
+  const hideNavbarOn = ["/products","/"];
   const isAdmin = localStorage.getItem("role") === "admin";
 
   return (
     <Box sx={{ display: "flex" }}>
-      {/* ✅ Drawer always renders to the left */}
+      {/* Sidebar always renders for admin */}
       {isAdmin && showAdminSidebar && (
         <AdminSidebar onClose={() => setShowAdminSidebar(false)} />
       )}
 
       <Box sx={{ flexGrow: 1 }}>
-        {/* ✅ Navbar only when allowed */}
+        {/* Navbar only when allowed */}
         {!hideNavbarOn.includes(location.pathname) && (
           <Navbar onSettingClick={() => setShowAdminSidebar(true)} />
         )}
 
-        {/* ✅ All your routed pages go here */}
+        {/* All your routed pages go here */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -49,6 +55,12 @@ const AppRoutes = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/expired" element={<Expired />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/manage-users" element={<ManageUsers />} />
+          <Route path="/admin/manage-products" element={<ManageProducts />} />
+          <Route path="/admin/manage-categories" element={<ManageCategories />} />
+          <Route path="/admin/low-stock" element={<LowStockProducts />} />
+
         </Routes>
       </Box>
     </Box>

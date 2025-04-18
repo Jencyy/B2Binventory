@@ -79,9 +79,6 @@ const Navbar = ({ onMenuClick, onSettingClick }) => {
             <Button onClick={() => navigate("/products")} sx={{ color: "white", textTransform: "none" }}>
               Products
             </Button>
-            <Button onClick={() => navigate("/add-category")} sx={{ color: "white", textTransform: "none" }}>
-              Add Category
-            </Button>
             <Button component={Link} to="/wishlist" sx={{ color: "white", textTransform: "none" }}>
               My Wishlist
             </Button>
@@ -91,17 +88,17 @@ const Navbar = ({ onMenuClick, onSettingClick }) => {
 
             {userRole === "admin" ? (
               <>
+            <Button onClick={() => navigate("/add-category")} sx={{ color: "white", textTransform: "none" }}>
+              Add Category
+            </Button>
                 <Button onClick={() => navigate("/add-product")} sx={{ color: "white", textTransform: "none" }}>
                   Add Product
                 </Button>
                 <Button onClick={() => navigate("/orders")} sx={{ color: "white", textTransform: "none" }}>
                   View Orders
                 </Button>
-                <Button
-                  onClick={onSettingClick}
-                  sx={{ color: "white", textTransform: "none" }} >
-                  Settings
-                </Button>
+                <Button onClick={() => navigate("/admin/dashboard")}>Settings</Button>
+
                 <Button
                   onClick={() => navigate("/register")}
                   sx={{
