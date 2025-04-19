@@ -119,3 +119,74 @@ exports.getRecentActivities = async (req, res) => {
     res.status(500).json({ message: "Error fetching activities" });
   }
 };
+exports.getOutOfStockProducts = async (req, res) => {
+  try {
+      console.log("Trying to fetch products with stock = 0");
+      
+      const outOfStock = await Product.find({ stock: 0 });
+
+      console.log("Fetched products:", outOfStock);
+
+      res.status(200).json(outOfStock);
+  } catch (error) {
+      console.error("Error fetching out of stock products:", error);
+      res.status(500).json({ error: "Error fetching out of stock products" });
+  }
+};
+
+
+// controller/productController.js
+
+exports.filterProducts = async (req, res) => {
+  try {
+      const { minStock, maxStock, minPrice, maxPrice } = req.query;
+
+      let filter = {};
+
+      if (minStock) filter.stock = { ...filter.stock, $gte: parseInt(minStock) };
+      if (maxStock) filter.stock = { ...filter.stock, $lte: parseInt(maxStock) };
+
+      if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
+      if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
+
+      const products = await Product.find(filter);
+      res.status(200).json(products);
+  } catch (error) {
+      console.error("Error filtering products:", error);
+      res.status(500).json({ error: "Error filtering products" });
+  }
+};
+
+// Get a single product and increase its view count
+exports.getSingleProduct = async (req, res) => {
+  const productId = req.params.id;
+
+  try {
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    // Increase view count
+    product.viewCount = (product.viewCount || 0) + 1;
+    await product.save();
+
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching product' });
+  }
+};
+// Get top most viewed products
+exports.getMostViewedProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    const products = await Product.find()
+      .sort({ viewCount: -1 })
+      .limit(limit);
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Error fetching most viewed products:', error);
+    res.status(500).json({ error: 'Error fetching product' });
+  }
+};
+

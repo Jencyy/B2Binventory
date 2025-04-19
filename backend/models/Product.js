@@ -25,6 +25,16 @@ const productSchema = new mongoose.Schema({
   video: {
     type: String, // URL for video (optional)
   },
+  viewCount: {
+    type: Number,
+    default: 0
+  },
+  notifyWhenRestocked: {
+    type: Boolean,
+    default: false
+  }
+  
+  
 });
 
 const Product = mongoose.model("Product", productSchema);

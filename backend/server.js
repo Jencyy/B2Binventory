@@ -21,20 +21,16 @@ app.use(
 app.use(bodyParser.json());
 app.use(express.json());
 
-console.log("🧩 Registering all routes...");
+
 
 // Register routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));
 app.use("/api/categories", require("./routes/categoryRoutes"));
 app.use("/api/orders", require("./routes/orderRoutes"));
-
-// DEBUG: log right before registering cart
-console.log("📦 Registering /api/cart route...");
-const cartRoutes = require("./routes/cartRoutes");
-app.use("/api/cart", cartRoutes);
-
+app.use("/api/cart", require("./routes/cartRoutes"));
 app.use("/api/wishlist", require("./routes/wishlistRoutes"));
+app.use("api/contact", require("./routes/contactRoutes"));
 app.use("/uploads", express.static("uploads"));
 
 // Start server

@@ -131,3 +131,11 @@ exports.getRecentLogins = async (req, res) => {
     res.status(500).json({ message: "Error fetching recent logins" });
   }
 };
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");x 
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get user profile" });
+  }
+};
