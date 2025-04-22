@@ -1,6 +1,8 @@
 const Product = require("../models/Product");
 const multer = require("multer");
-
+const xlsx = require('xlsx');
+const fs = require('fs');
+const path = require('path');
 // Define storage for uploaded files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -56,7 +58,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await Product.find().populate("category");
     res.json(products);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });   
   }
 };
 
@@ -190,3 +192,29 @@ exports.getMostViewedProducts = async (req, res) => {
   }
 };
 
+// Get All Products - For Admin
+exports.getAllProductsForAdmin = async (req, res) => {
+  try {
+      const products = await Product.find(); // You can add sorting, pagination, etc.
+      res.status(200).json(products);
+  } catch (error) {
+      console.error("Error fetching all products:", error);
+      res.status(500).json({ error: "Error fetching all products" });
+  }
+};
+exports.uploadProductsFromExcel = async (req, res) => {
+  try {
+    const filePath = req.file.path;
+    const workbook = xlsx.readFile(filePath);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(sheet);
+
+    const insertedProducts = await Product.insertMany(data);
+    res.status(200).json({ message: "Products uploaded successfully", data: insertedProducts });
+
+    // Optional: delete the file afterward
+    fs.unlinkSync(filePath);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to upload products", details: error.message });
+  }
+};
