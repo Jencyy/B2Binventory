@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Box, Typography, Card, CardContent, Grid, CircularProgress } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-// import { fetchLowStock, fetchLogins, fetchActivities } from "../redux/slices/adminDashboardSlice";
+import { fetchLowStock, fetchLogins, fetchActivities } from "../redux/adminDashboardSlice";
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
@@ -11,7 +11,7 @@ const AdminDashboard = () => {
   );
 
   useEffect(() => {
-    dispatch(fetchLowStock());
+    dispatch(fetchLowStock()); 
     dispatch(fetchLogins());
     dispatch(fetchActivities());
   }, [dispatch]);
@@ -20,7 +20,7 @@ const AdminDashboard = () => {
     return (
       <Box display="flex" justifyContent="center" mt={5}>
         <CircularProgress />
-      </Box>
+      </Box> 
     );
   }
 

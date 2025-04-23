@@ -20,6 +20,7 @@ import ManageUsers from "./pages/ManageUsers";
 import ManageProducts from "./pages/ManageProducts";
 import ManageCategories from "./pages/ManageCategories";
 import LowStockProducts from "./pages/LowStockProducts";
+import UploadExcelPage from "./pages/UploadExcelPage";
 
 import { Box } from "@mui/material";
 
@@ -60,7 +61,7 @@ const AppRoutes = () => {
           <Route path="/admin/manage-products" element={<ManageProducts />} />
           <Route path="/admin/manage-categories" element={<ManageCategories />} />
           <Route path="/admin/low-stock" element={<LowStockProducts />} />
-
+          <Route path="/upload-excel" element={<UploadExcelPage />} />
         </Routes>
       </Box>
     </Box>
