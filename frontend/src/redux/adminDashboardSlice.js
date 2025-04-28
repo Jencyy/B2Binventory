@@ -13,7 +13,8 @@ export const fetchLowStock = createAsyncThunk(
 export const fetchLogins = createAsyncThunk(
   "adminDashboard/fetchLogins",
   async () => {
-    const response = await axios.get("/api/users/recent-logins");
+    const response = await axios.get("/api/auth/recent-logins");
+    console.log("API Response for recent logins:", response.data); // Debug Log
     return response.data;
   }
 );
@@ -21,7 +22,7 @@ export const fetchLogins = createAsyncThunk(
 export const fetchActivities = createAsyncThunk(
   "adminDashboard/fetchActivities",
   async () => {
-    const response = await axios.get("/api/users/activity-logs");
+    const response = await axios.get("/api/auth/activities");
     return response.data;
   }
 );
@@ -53,6 +54,7 @@ const adminDashboardSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchLogins.fulfilled, (state, action) => {
+        console.log("Fetched logins:", action.payload); // Debug Log
         state.recentLogins = action.payload;
         state.loading = false;
       })

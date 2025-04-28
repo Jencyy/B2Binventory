@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
   whatsapp: String,
   deliveryAddress: String,
   password: String,
+  lastLogin: { type: Date },
   role: { type: String, enum: ["admin", "businessman"], default: "businessman" },
   isVerified: { type: Boolean, default: false },
   passwordExpiry: { type: Date },

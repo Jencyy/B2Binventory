@@ -1,40 +1,65 @@
 import React from "react";
-import { Box, Drawer, List, ListItem, ListItemText, Divider } from "@mui/material";
-import { Link } from "react-router-dom";
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+} from "@mui/material";
+import {
+  Dashboard as DashboardIcon,
+  PersonAdd,
+  Inventory,
+  People,
+  Category,
+  CloudUpload,
+  Warning,
+} from "@mui/icons-material";
+
+const sections = [
+  { id: "low-stock-overview", label: "Dashboard", icon: <DashboardIcon /> },
+  { id: "register", label: "Register User", icon: <PersonAdd /> },
+  { id: "add-product", label: "Add Product", icon: <Inventory /> },
+  { id: "manage-products", label: "Manage Products", icon: <Inventory /> },
+  { id: "manage-users", label: "Manage Users", icon: <People /> },
+  { id: "manage-categories", label: "Manage Categories", icon: <Category /> },
+  { id: "upload-excel", label: "Upload Excel", icon: <CloudUpload /> },
+  { id: "low-stock", label: "Low Stock", icon: <Warning /> },
+];
+
+const scrollToSection = (id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
 
 const AdminSidebar = () => {
   return (
     <Drawer
-      sx={{
+    variant="permanent"
+    anchor="left"
+    sx={{
+      "& .MuiDrawer-paper": {
         width: 240,
-        flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: 240,
-          boxSizing: "border-box",
-        },
-      }}
-      variant="permanent"
-      anchor="left"
-    >
+        boxSizing: "border-box",
+      },
+    }}
+  >
       <List>
-        {/* Links to Admin Sections */}
-        <ListItem button component={Link} to="/admin/dashboard">
-          <ListItemText primary="Dashboard" />
-        </ListItem>
-        <Divider />
-        <ListItem button component={Link} to="/admin/manage-products">
-          <ListItemText primary="Manage Products" />
-        </ListItem>
-        <ListItem button component={Link} to="/admin/manage-categories">
-          <ListItemText primary="Manage Categories" />
-        </ListItem>
-        <ListItem button component={Link} to="/admin/manage-users">
-          <ListItemText primary="Manage Users" />
-        </ListItem>
-        <ListItem button component={Link} to="/admin/low-stock">
-          <ListItemText primary="Low Stock Products" />
-        </ListItem>
+        {sections.map((section) => (
+          <ListItem
+            button
+            key={section.id}
+            onClick={() => scrollToSection(section.id)}
+          >
+            <ListItemIcon>{section.icon}</ListItemIcon>
+            <ListItemText primary={section.label} />
+          </ListItem>
+        ))}
       </List>
+      <Divider />
     </Drawer>
   );
 };

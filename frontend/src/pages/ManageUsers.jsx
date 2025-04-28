@@ -13,14 +13,40 @@ const ManageUsers = () => {
     const fetchedUsers = JSON.parse(localStorage.getItem("users") || "[]");
     setUsers(fetchedUsers);
   }, []);
-
-  // Delete a user (this should also be connected to an API)
-  const handleDeleteUser = (userId) => {
-    const updatedUsers = users.filter((user) => user.id !== userId);
-    setUsers(updatedUsers);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
+  const handleUpdateUser = async (userId, updatedData) => {
+    try {
+      const response = await axios.put(`http://localhost:5000/api/users/${userId}`, updatedData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+  
+      // Update user in state
+      const updatedUsers = users.map((user) =>
+        user._id === userId ? { ...user, ...updatedData } : user
+      );
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("There was an error updating the user.");
+    }
   };
-
+  
+  // Delete a user (this should also be connected to an API)
+  const handleDeleteUser = async (userId) => {
+    try {
+      // API call to delete user
+      await axios.delete(`http://localhost:5000/api/users/${userId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+  
+      // Remove user from state
+      const updatedUsers = users.filter((user) => user._id !== userId);
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("There was an error deleting the user.");
+    }
+  };
+  
   // Update user role (admin/user) (this should also be connected to an API)
   const handleChangeRole = (userId, newRole) => {
     const updatedUsers = users.map((user) =>

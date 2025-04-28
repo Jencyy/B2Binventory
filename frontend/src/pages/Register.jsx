@@ -45,7 +45,15 @@ const Register = () => {
         <TextField fullWidth label="WhatsApp Number" name="whatsapp" value={userData.whatsapp} onChange={handleChange} margin="normal" variant="outlined" required />
         <TextField fullWidth label="Delivery Address" name="address" value={userData.address} onChange={handleChange} margin="normal" variant="outlined" required />
         <TextField fullWidth label="Password" name="password" type="password" value={userData.password} onChange={handleChange} margin="normal" variant="outlined" required />
-
+        <TextField
+          fullWidth
+          label="Password Expiry (e.g. 30m, 2h, 1d)"
+          name="passwordExpiry"
+          value={userData.passwordExpiry}
+          onChange={handleChange}
+          margin="normal"
+          variant="outlined"
+        />
         {error && <Typography color="error">{error}</Typography>}
 
         <Button

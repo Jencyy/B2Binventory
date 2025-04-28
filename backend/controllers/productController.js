@@ -113,14 +113,7 @@ exports.getLowStockProducts = async (req, res) => {
   }
 };
 // GET /api/activities
-exports.getRecentActivities = async (req, res) => {
-  try {
-    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(20);
-    res.status(200).json(logs);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching activities" });
-  }
-};
+
 exports.getOutOfStockProducts = async (req, res) => {
   try {
       console.log("Trying to fetch products with stock = 0");

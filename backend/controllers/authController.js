@@ -3,7 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
-
+const parseDuration = require("../utills/timeParser");
+const ActivityLog = require("../models/ActivityLog");
 dotenv.config();
 
 // Nodemailer Config
@@ -18,46 +19,42 @@ const transporter = nodemailer.createTransport({
 // User Registration by Admin
 exports.register = async (req, res) => {
   try {
-    console.log("Received Request Body:", req.body); // Debugging line
+    const {
+      name, email, phone, whatsapp, address,
+      password, role = "businessman",
+      passwordExpiry = "1440m" // default 1 day
+    } = req.body;
 
-    const { name, email, phone, whatsapp, address, password, role, passwordExpiry } = req.body;
-
-    if (!name || !email || !phone || !whatsapp || !address || !password || !role) {
+    if (!name || !email || !phone || !whatsapp || !address || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Ensure passwordExpiry is a number (or set default to 1440 minutes)
-    const expiryMinutes = passwordExpiry ? parseInt(passwordExpiry, 10) : 1440;
-    const passwordExpiresAt = expiryMinutes > 0 ? new Date(Date.now() + expiryMinutes * 60000) : null;
-    const expiryDuration = req.body.passwordExpiry; // Minutes
-    const expiryDate = expiryDuration === 0 ? null : new Date(Date.now() + expiryDuration * 60000);
-    
-    // Create new user
+    const expiryTimestamp = parseDuration(passwordExpiry);
+    if (!expiryTimestamp) {
+      return res.status(400).json({ message: "Invalid expiry format. Use 30m, 2h, 1d, 1mo" });
+    }
+
     const newUser = new User({
       name,
       email,
       phone,
       whatsapp,
       address,
-      password: hashedPassword, // Save hashed password
-      role: role || businessman,
-      passwordExpiresAt, 
-      passwordExpiry: expiryDate,
+      password: hashedPassword,
+      role,
+      passwordExpiry: new Date(expiryTimestamp),
     });
 
     await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
+
   } catch (error) {
-    console.error("Registration Error:", error);  
-    res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Registration Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
-
-
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -72,22 +69,33 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Ensure user.role is available before signing token
     if (!user.role) {
       return res.status(500).json({ message: "User role is missing" });
     }
+
     if (user.passwordExpiry && new Date() > user.passwordExpiry) {
       return res.status(403).json({ message: "Your password has expired. Contact admin." });
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    // ✅ Update lastLogin
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Log activity: User login
+    const activity = new ActivityLog({
+      action: `${user.name} logged in`,
+    });
+    await activity.save(); // Save the activity log
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       id: user._id,
       token,
-      role: user.role, 
+      role: user.role,
       name: user.name,
-
     });
 
   } catch (error) {
@@ -122,20 +130,80 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
-// GET /api/users/recent-logins
-exports.getRecentLogins = async (req, res) => {
-  try {
-    const users = await User.find().sort({ lastLogin: -1 }).limit(10);
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching recent logins" });
-  }
-};
+
+
 exports.getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");x 
     res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: "Failed to get user profile" });
+  }
+};
+exports.getRecentLogins = async (req, res) => {
+  try {
+    const users = await User.find()
+      .sort({ lastLogin: -1 })
+      .limit(10)
+      .select("name email lastLogin");
+      
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching recent logins" });
+  }
+};
+exports.getRecentActivities = async (req, res) => {
+  try {
+    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(20); // Get the 20 most recent activity logs
+    res.status(200).json(logs); // Return the logs as JSON
+  } catch (error) {
+    console.error("Error fetching activities:", error);
+    res.status(500).json({ message: "Error fetching activities" });
+  }
+};
+// Delete User by Admin
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Check if the user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Ensure the admin is trying to delete a user (not themselves)
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can delete users" });
+    }
+
+    await User.findByIdAndDelete(userId);
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete User Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+// Update User by Admin
+exports.updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const updatedData = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Ensure the admin is updating a user
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can update users" });
+    }
+
+    await User.findByIdAndUpdate(userId, updatedData, { new: true });
+    res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("Update User Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
