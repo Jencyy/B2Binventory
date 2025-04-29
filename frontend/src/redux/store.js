@@ -7,7 +7,7 @@ import authReducer from "./authSlice";
 import orderReducer from "./orderSlice";
 import adminDashboardReducer from "./adminDashboardSlice"
 
-const store = configureStore({
+ const store = configureStore({
   reducer: {
     products: productReducer,
     categories: categoryReducer,

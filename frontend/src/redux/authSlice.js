@@ -14,31 +14,75 @@ const getUserFromLocalStorage = () => {
 
 // Initial state
 const initialState = {
-    user: JSON.parse(localStorage.getItem("user")) || null,
-    token: localStorage.getItem("token") || null,
-    loading: false,
-    error: null,
-  };
-  
+  user: JSON.parse(localStorage.getItem("user")) || null,
+  token: localStorage.getItem("token") || null,
+  users: [],
+  loading: false,
+  error: null,
+};
+
 // Login User
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials, { rejectWithValue }) => {
     try {
       const { data } = await axios.post("http://localhost:5000/api/auth/login", credentials);
-      console.log("API Response:", data);
-      
       if (!data.token) {
         return rejectWithValue("No token received!");
       }
-
       localStorage.setItem("user", JSON.stringify(data));
       localStorage.setItem("token", data.token);
-
       return { user: data, token: data.token };
     } catch (error) {
-      console.error("Login error:", error);
       return rejectWithValue(error.response?.data?.message || "Login failed!");
+    }
+  }
+);
+
+// Fetch all users
+export const fetchUsers = createAsyncThunk(
+  "users/fetchUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("http://localhost:5000/api/auth/users", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch users");
+    }
+  }
+);
+
+// Delete a user
+export const deleteUser = createAsyncThunk(
+  "users/deleteUser",
+  async (userId, { rejectWithValue }) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/auth/${userId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      return userId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to delete user");
+    }
+  }
+);
+
+// Update user role
+export const updateUserRole = createAsyncThunk(
+  "auth/updateUserRole",
+  async ({ userId, newRole }, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+      const response = await axios.put(
+        `http://localhost:5000/api/auth/${userId}`,
+        { role: newRole },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data; // NOT response.data.user
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to update role");
     }
   }
 );
@@ -51,16 +95,19 @@ export const logoutUser = createAsyncThunk("auth/logout", async () => {
 });
 
 // Register User
-export const registerUser = createAsyncThunk("auth/register", async (userData, { rejectWithValue }) => {
-  try {
-    const { data } = await axios.post("http://localhost:5000/api/auth/register", userData, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
-    return data;
-  } catch (error) {
-    return rejectWithValue(error.response?.data?.message || "Registration failed");
+export const registerUser = createAsyncThunk(
+  "auth/register",
+  async (userData, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post("http://localhost:5000/api/auth/register", userData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Registration failed");
+    }
   }
-});
+);
 
 // Auth Slice
 const authSlice = createSlice({
@@ -68,12 +115,11 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     loginSuccess: (state, action) => {
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        console.log("Login Success:", action.payload)
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
-      },
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("token", action.payload.token);
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+    },
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -83,24 +129,66 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log("Login Successful:", action.payload);
         state.user = action.payload.user;
         state.token = action.payload.token;
         state.loading = false;
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("token", action.payload.token);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Login failed!";
-        console.log("Login Rejected:", action);
+        state.error = action.payload;
       })
-      
+
+      // Fetch Users
+      .addCase(fetchUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload;
+      })
+      .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Delete User
+      .addCase(deleteUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = state.users.filter((user) => user._id !== action.payload);
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Update User Role
+      .addCase(updateUserRole.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateUserRole.fulfilled, (state, action) => {
+        const updatedUser = action.payload;
+        const index = state.users.findIndex((user) => user._id === updatedUser._id);
+        if (index !== -1) {
+          state.users[index] = updatedUser;
+        }
+        state.loading = false;
+      })
+      .addCase(updateUserRole.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Register User
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -115,5 +203,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout,loginSuccess } = authSlice.actions;
+export const { logout, loginSuccess } = authSlice.actions;
 export default authSlice.reducer;
