@@ -19,18 +19,14 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCategories, addCategory } from "../redux/categorySlice";
+import { fetchCategories, addCategory, updateCategory } from "../redux/categorySlice";
 import axios from "axios";
 
 const ManageCategories = () => {
   const dispatch = useDispatch();
   const { categories, loading, error } = useSelector((state) => state.categories);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    image: null,
-  });
+  const [formData, setFormData] = useState({ name: "", description: "", image: null });
   const [preview, setPreview] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -51,37 +47,31 @@ const ManageCategories = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
+  
     const data = new FormData();
     data.append("name", formData.name);
     data.append("description", formData.description);
     if (formData.image) {
       data.append("image", formData.image);
     }
-
+  
     try {
       if (editMode) {
-        // Editing existing category
-        await axios.put(`http://localhost:5000/api/categories/${editingId}`, data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await dispatch(updateCategory({ id: editingId, updatedData: data })).unwrap();
         alert("Category updated successfully!");
       } else {
-        // Adding new category
         await dispatch(addCategory(data)).unwrap();
         alert("Category added successfully!");
       }
+  
       resetForm();
       dispatch(fetchCategories());
     } catch (error) {
       console.error(error);
-      alert("Something went wrong!");
+      alert(`Error: ${error?.response?.data?.error || "Something went wrong!"}`);
     }
   };
-
+  
   const resetForm = () => {
     setFormData({ name: "", description: "", image: null });
     setPreview(null);
@@ -93,7 +83,7 @@ const ManageCategories = () => {
     setFormData({
       name: category.name,
       description: category.description,
-      image: null, // Don't set old image file
+      image: null,
     });
     setPreview(category.image ? `http://localhost:5000${category.image}` : null);
     setEditMode(true);
@@ -123,7 +113,6 @@ const ManageCategories = () => {
         Manage Categories
       </Typography>
 
-      {/* Form for Add/Edit */}
       <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 4 }}>
         <TextField label="Category Name" name="name" value={formData.name} onChange={handleChange} required />
         <TextField label="Description" name="description" value={formData.description} onChange={handleChange} multiline rows={3} />
@@ -143,14 +132,13 @@ const ManageCategories = () => {
         )}
       </Box>
 
-      {/* Categories Table */}
       {loading ? (
         <CircularProgress />
       ) : error ? (
         <Typography color="error">Error: {error}</Typography>
       ) : (
         <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }}>
+          <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
@@ -163,7 +151,7 @@ const ManageCategories = () => {
               {categories.map((category) => (
                 <TableRow key={category._id}>
                   <TableCell>{category.name}</TableCell>
-                  <TableCell>{category.description}</TableCell>
+                  <TableCell>{category.description || "-"}</TableCell>
                   <TableCell>
                     {category.image && (
                       <img src={`http://localhost:5000${category.image}`} alt={category.name} width="60" />
