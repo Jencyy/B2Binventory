@@ -107,29 +107,25 @@ exports.login = async (req, res) => {
 // Password Reset by Admin
 exports.resetPassword = async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Only admins can reset passwords." });
-    }
-
-    const { email, newPassword, expiryDuration } = req.body;
+    const { email, newPassword } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "User not found." });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
-
-    // Reset password expiry
-    user.passwordExpiry = new Date(Date.now() + expiryDuration * 60 * 1000);
-
     await user.save();
-    res.status(200).json({ message: "Password reset successful.", passwordExpiry: user.passwordExpiry });
 
-  } catch (error) {
-    console.error("Password Reset Error:", error);
-    res.status(500).json({ message: "Internal server error." });
+    const activity = new ActivityLog({ action: `Password reset for ${user.name}` });
+    await activity.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    console.error("Reset Error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 exports.getUserProfile = async (req, res) => {

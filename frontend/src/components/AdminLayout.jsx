@@ -23,7 +23,7 @@ const AdminLayout = () => {
       flexGrow: 1,
       display: "flex",
       flexDirection: "column",
-      overflow: "hidden", // prevent x-scroll
+     
     }}
   >
     <AdminTopbar onLogout={handleLogout} />

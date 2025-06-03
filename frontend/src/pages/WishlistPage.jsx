@@ -56,7 +56,7 @@ const WishlistPage = () => {
             const product = item.productId;
             const image = product.images?.[0]
               ? `${baseURL}${product.images[0]}`
-              : "/placeholder.jpg";
+              : "/placeholder.jpg"; 
 
             return (
               <Grid item xs={12} sm={6} md={4} lg={3} key={item._id}>

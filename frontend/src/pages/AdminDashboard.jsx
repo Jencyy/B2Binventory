@@ -16,8 +16,9 @@ import {
   People as UsersIcon,
   ShoppingCart as ProductIcon,
   Warning as LowStockIcon,
-  Lock as LoginIcon,
+  Lock as LockIcon, // ✅ Correct icon for Reset Password section
   History as ActivityIcon,
+  Login as LoginIcon,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 
@@ -32,6 +33,7 @@ import ManageUsers from "./ManageUsers";
 import ManageCategories from "./ManageCategories";
 import UploadExcelPage from "./UploadExcelPage";
 import LowStockProducts from "./LowStockProducts";
+import ResetPassword from "../components/ResetPassword";
 
 const SectionCard = ({ id, icon, title, children }) => {
   const theme = useTheme();
@@ -75,7 +77,7 @@ const AdminDashboard = () => {
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.4 }}
     >
-      <Box sx={{ p: 4, ml: { md: 30 } }}>
+      <Box sx={{ p: 4, ml: { md: 30 }, overflow: "hidden" }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           Admin Dashboard
         </Typography>
@@ -163,6 +165,9 @@ const AdminDashboard = () => {
 
         <SectionCard id="low-stock" icon={<LowStockIcon />} title="Low Stock Products">
           <LowStockProducts />
+        </SectionCard>
+        <SectionCard id="reset-password" icon={<LockIcon />} title="Reset Password">
+          <ResetPassword />
         </SectionCard>
       </Box>
     </motion.div>);

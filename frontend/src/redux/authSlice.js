@@ -85,6 +85,25 @@ export const updateUserRole = createAsyncThunk(
       return rejectWithValue(error.response?.data?.message || "Failed to update role");
     }
   }
+); 
+// Inside authSlice.js
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ email, newPassword }, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/auth/reset-password",
+        { email, newPassword },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Password reset failed");
+    }
+  }
 );
 
 
@@ -154,6 +173,17 @@ const authSlice = createSlice({
         state.users = action.payload;
       })
       .addCase(fetchUsers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

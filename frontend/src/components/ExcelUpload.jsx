@@ -13,24 +13,29 @@ const ExcelUpload = () => {
     setFile(e.target.files[0]);
   };
 
-  const handleUpload = async () => {
-    if (!file) return;
+ // ExcelUpload.jsx
+ const handleUpload = async () => {
+  if (!file) return;
 
-    const formData = new FormData();
-    formData.append('excel', file);
+  const formData = new FormData();
+  formData.append('file', file); // ✅ Must match backend multer field
 
-    try {
-      setUploading(true);
-      const res = await axios.post('/api/products/upload-excel', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setMessage(res.data.message || 'Upload successful!');
-    } catch (err) {
-      setMessage('Upload failed. Please try again.');
-    } finally {
-      setUploading(false);
-    }
-  };
+  try {
+    setUploading(true);
+    const res = await axios.post('/api/products/admin/upload-products', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    setMessage(res.data.message || 'Upload successful!');
+    // dispatch(fetchProducts()); // Uncomment only if you're using Redux to refresh products
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    setMessage('Upload failed. Please try again.');
+  } finally {
+    setUploading(false);
+  }
+};
+
+
 
   return (
     <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>

@@ -3,6 +3,7 @@ const multer = require("multer");
 const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
+const Category = require("../models/Category");
 // Define storage for uploaded files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -58,7 +59,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await Product.find().populate("category");
     res.json(products);
   } catch (error) {
-    res.status(500).json({ error: error.message });   
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -116,16 +117,16 @@ exports.getLowStockProducts = async (req, res) => {
 
 exports.getOutOfStockProducts = async (req, res) => {
   try {
-      console.log("Trying to fetch products with stock = 0");
-      
-      const outOfStock = await Product.find({ stock: 0 });
+    console.log("Trying to fetch products with stock = 0");
 
-      console.log("Fetched products:", outOfStock);
+    const outOfStock = await Product.find({ stock: 0 });
 
-      res.status(200).json(outOfStock);
+    console.log("Fetched products:", outOfStock);
+
+    res.status(200).json(outOfStock);
   } catch (error) {
-      console.error("Error fetching out of stock products:", error);
-      res.status(500).json({ error: "Error fetching out of stock products" });
+    console.error("Error fetching out of stock products:", error);
+    res.status(500).json({ error: "Error fetching out of stock products" });
   }
 };
 
@@ -134,21 +135,21 @@ exports.getOutOfStockProducts = async (req, res) => {
 
 exports.filterProducts = async (req, res) => {
   try {
-      const { minStock, maxStock, minPrice, maxPrice } = req.query;
+    const { minStock, maxStock, minPrice, maxPrice } = req.query;
 
-      let filter = {};
+    let filter = {};
 
-      if (minStock) filter.stock = { ...filter.stock, $gte: parseInt(minStock) };
-      if (maxStock) filter.stock = { ...filter.stock, $lte: parseInt(maxStock) };
+    if (minStock) filter.stock = { ...filter.stock, $gte: parseInt(minStock) };
+    if (maxStock) filter.stock = { ...filter.stock, $lte: parseInt(maxStock) };
 
-      if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
-      if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
+    if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
+    if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
 
-      const products = await Product.find(filter);
-      res.status(200).json(products);
+    const products = await Product.find(filter);
+    res.status(200).json(products);
   } catch (error) {
-      console.error("Error filtering products:", error);
-      res.status(500).json({ error: "Error filtering products" });
+    console.error("Error filtering products:", error);
+    res.status(500).json({ error: "Error filtering products" });
   }
 };
 
@@ -188,11 +189,11 @@ exports.getMostViewedProducts = async (req, res) => {
 // Get All Products - For Admin
 exports.getAllProductsForAdmin = async (req, res) => {
   try {
-      const products = await Product.find(); // You can add sorting, pagination, etc.
-      res.status(200).json(products);
+    const products = await Product.find(); // You can add sorting, pagination, etc.
+    res.status(200).json(products);
   } catch (error) {
-      console.error("Error fetching all products:", error);
-      res.status(500).json({ error: "Error fetching all products" });
+    console.error("Error fetching all products:", error);
+    res.status(500).json({ error: "Error fetching all products" });
   }
 };
 exports.uploadProductsFromExcel = async (req, res) => {
@@ -202,12 +203,58 @@ exports.uploadProductsFromExcel = async (req, res) => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(sheet);
 
-    const insertedProducts = await Product.insertMany(data);
-    res.status(200).json({ message: "Products uploaded successfully", data: insertedProducts });
+    const getOrCreateCategory = async (categoryName) => {
+      let category = await Category.findOne({ name: categoryName.trim() });
 
-    // Optional: delete the file afterward
-    fs.unlinkSync(filePath);
+      if (!category) {
+        category = new Category({ name: categoryName.trim() });
+        await category.save();
+      }
+
+      return category._id;
+    };
+
+    const productsToInsert = [];
+
+    for (const row of data) {
+      const {
+        name,
+        price,
+        stock,
+        category: categoryName,
+        description,
+        images,
+        video,
+      } = row;
+
+      const categoryId = await getOrCreateCategory(categoryName);
+
+      const product = {
+        name,
+        price,
+        stock,
+        description,
+        images: images ? images.split(',').map((img) => img.trim()) : [],
+        video: video || '',
+        category: categoryId,
+      };
+
+      productsToInsert.push(product);
+    }
+
+    const insertedProducts = await Product.insertMany(productsToInsert);
+
+    fs.unlinkSync(filePath); // Clean up uploaded file
+
+    res.status(200).json({
+      message: 'Products uploaded successfully',
+      data: insertedProducts,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Failed to upload products", details: error.message });
+    console.error('Excel Upload Error:', error);
+    res.status(500).json({
+      error: 'Failed to upload products',
+      details: error.message,
+    });
   }
 };

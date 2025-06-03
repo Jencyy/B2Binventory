@@ -34,17 +34,30 @@ exports.getAllCategories = async (req, res) => {
 exports.updateCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const updatedCategory = await Category.findByIdAndUpdate(
-      req.params.id,
-      { name, description },
-      { new: true, runValidators: true }
-    );
+    if (!name) {
+      return res.status(400).json({ error: "Name is required" });
+    }
 
-    if (!updatedCategory) {
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null; // Handle image update
+
+    // Find the category
+    const category = await Category.findById(req.params.id);
+    if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
 
-    res.json({ message: "Category updated successfully", updatedCategory });
+    // Update the category fields
+    category.name = name;
+    category.description = description;
+
+    if (imagePath) {
+      category.image = imagePath; // Only update if image is provided
+    }
+
+    // Save the updated category
+    await category.save();
+    
+    res.json({ message: "Category updated successfully", category });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

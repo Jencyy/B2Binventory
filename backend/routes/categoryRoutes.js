@@ -11,7 +11,8 @@ router.post("/", verifyToken, isAdmin, upload.single("image"), categoryControlle
 router.get("/", categoryController.getAllCategories);
 
 // ✅ Update category (Admin Only)
-router.put("/:id", verifyToken, isAdmin, categoryController.updateCategory);
+router.put("/:id", verifyToken, isAdmin, upload.single("image"), categoryController.updateCategory);
+
 
 // ✅ Delete category (Admin Only)
 router.delete("/:id", verifyToken, isAdmin, categoryController.deleteCategory);
